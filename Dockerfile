@@ -9,7 +9,8 @@ FROM ubuntu:latest as clang_ready
 RUN apt-get -y update && apt-get install -y
 
 # Install the Clang compiler
-RUN apt-get -y install clang
+RUN apt -y install clang
+RUN apt -y install cmake
 
 #
 # Compiling the project
@@ -23,11 +24,15 @@ COPY . /usr/src/cpp-demo
 # Specify the working directory
 WORKDIR /usr/src/cpp-demo
 
-RUN clang --version
+# Use Clang to compile the project
+# RUN clang --version
+# RUN clang++ -std=c++17 -Iinclude -o cpp-demo ./src/initialization_demo.cpp ./src/declarations_demo.cpp main.cpp
 
-# Use Clang to compile the Test.cpp source file
-RUN clang++ -std=c++17 -Iinclude -o cpp-demo ./src/initialization_demo.cpp ./src/declarations_demo.cpp main.cpp
-RUN cmake
+# Use cmake to compile the project with CXX compiler it finds on the system (and that should be clang)
+RUN cmake --version
+RUN ls -la
+RUN cmake .
+RUN make
 
 # Run the output program from the previous step
 CMD ["./cpp-demo"]
