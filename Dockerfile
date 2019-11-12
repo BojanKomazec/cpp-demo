@@ -26,7 +26,8 @@ WORKDIR /usr/src/cpp-demo
 RUN clang --version
 
 # Use Clang to compile the Test.cpp source file
-RUN clang++ -std=c++17 -o cpp-demo main.cpp
+RUN clang++ -std=c++17 -Iinclude -o cpp-demo ./src/initialization_demo.cpp ./src/declarations_demo.cpp main.cpp
+RUN cmake
 
 # Run the output program from the previous step
 CMD ["./cpp-demo"]
