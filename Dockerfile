@@ -30,8 +30,9 @@ WORKDIR /usr/src/cpp-demo
 
 # Use cmake to compile the project with CXX compiler it finds on the system (and that should be clang)
 RUN cmake --version
-RUN ls -la
+# RUN ls -Rla
 RUN cmake .
+# RUN ls -Rla
 RUN make
 
 # Run the output program from the previous step
