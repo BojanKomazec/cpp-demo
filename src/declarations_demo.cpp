@@ -1,4 +1,5 @@
 #include <declarations_demo.hpp>
+#include <cassert>
 #include <iostream>
 
 namespace {
@@ -11,6 +12,16 @@ namespace {
             return a + b;
         }
     };
+
+    // 0! is 1.
+    constexpr int factorial(const unsigned int n) {
+        return n == 0 ? 1 : n * factorial(n - 1);
+    }
+
+    // Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
+    constexpr int fibonacci(const unsigned int n) {
+        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n -2);
+    }
 }
 
 void constexpr_demo() {
@@ -43,7 +54,40 @@ void constexpr_demo() {
     // constexpr auto sum43 = S::sum_constexpr(n1, n2);
 }
 
+void factorial_demo() {
+    assert(factorial(0) == 1);
+    assert(factorial(1) == 1);
+    assert(factorial(2) == 2);
+    assert(factorial(3) == 6);
+
+    const int n1 = factorial(7);
+    constexpr int n2 = factorial(8);
+}
+
+void fibonacci_demo() {
+    assert(fibonacci(0) == 0);
+    assert(fibonacci(1) == 1);
+    assert(fibonacci(2) == 1);
+    assert(fibonacci(3) == 2);
+    assert(fibonacci(4) == 3);
+    assert(fibonacci(5) == 5);
+    assert(fibonacci(6) == 8);
+    assert(fibonacci(7) == 13);
+    assert(fibonacci(8) == 21);
+    assert(fibonacci(9) == 34);
+    assert(fibonacci(10) == 55);
+
+    // The following line causes error:
+    // cpp-demo: /usr/src/cpp-demo/src/declarations_demo.cpp:78: void fibonacci_demo(): Assertion `fibonacci(10) == 56' failed.
+    // assert(fibonacci(10) == 56);
+
+    const int n1 = fibonacci(11);
+    constexpr int n2 = fibonacci(11);
+}
+
 void declarations_demo(){
     std::cout << "declarations_demo()" << std::endl;
     constexpr_demo();
+    factorial_demo();
+    fibonacci_demo();
 }
