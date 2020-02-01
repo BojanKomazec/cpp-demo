@@ -1,3 +1,0 @@
-docker-run:
-	@echo Building and running Docker image...
-	docker build -t cpp-demo . && docker run --rm --name cpp-demo cpp-demo
