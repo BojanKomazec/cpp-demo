@@ -6,6 +6,85 @@ C++11/14/17 terminal application which demonstrates various features of modern C
 
 ## Compiling on the native OS
 
+Verify that you have installed cmake and make:
+
+```
+$ cmake --version
+$ make --version
+```
+
+Example:
+
+```
+$ cmake --version
+cmake version 3.10.2
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+
+$ make --version
+GNU Make 4.1
+Built for x86_64-pc-linux-gnu
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
+Licence GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+```
+
+To check which C++ compiler will be used, open CMakeCache.txt and find lines like:
+```
+//CXX compiler
+CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+```
+
+From `man gcc`:
+
+```
+gcc - GNU project C and C++ compiler.
+When you compile C++ programs, you should invoke GCC as g++ instead.
+```
+
+
+$ gcc --version
+gcc (Ubuntu 7.4.0-1ubuntu1~18.04.1) 7.4.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+$ which gcc
+/usr/bin/gcc
+
+
+$ /usr/bin/gcc --version
+gcc (Ubuntu 7.4.0-1ubuntu1~18.04.1) 7.4.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+$ /usr/bin/c++ --version
+c++ (Ubuntu 7.4.0-1ubuntu1~18.04.1) 7.4.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+$ which c++
+/usr/bin/c++
+
+$ which g++
+/usr/bin/g++
+
+$ which gcc
+/usr/bin/gcc
+
+$ readlink /usr/bin/c++
+/etc/alternatives/c++
+
+$ readlink /etc/alternatives/c++
+/usr/bin/g++
+
+$ readlink /usr/bin/g++
+g++-7
+```
+
 Run:
 ```
 $ cmake . && make
