@@ -1,3 +1,5 @@
 #pragma once
 
-void initialization_demo();
+namespace initialization_demo{
+    void run();
+}

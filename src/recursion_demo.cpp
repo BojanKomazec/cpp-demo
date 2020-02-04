@@ -20,7 +20,7 @@ namespace recursion_demo {
 
 
     void run() {
-        std::cout << "recursion_demo()" << std::endl;
+        std::cout << "recursion_demo::run()" << std::endl;
         factorial_demo();
     }
 }

@@ -1,5 +1,5 @@
 #pragma once
 
-namespace declarations_demo {
+namespace reference_demo {
     void run();
 }

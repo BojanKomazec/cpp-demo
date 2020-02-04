@@ -1,5 +1,5 @@
 #pragma once
 
-namespace declarations_demo {
+namespace pointer_demo {
     void run();
 }

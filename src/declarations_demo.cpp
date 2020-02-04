@@ -2,26 +2,25 @@
 #include <cassert>
 #include <iostream>
 
-namespace {
-    struct S {
-        static const int sum_const(int a, int b) {
-            return a + b;
-        }
-
-        static constexpr int sum_constexpr(int a, int b) {
-            return a + b;
-        }
-    };
-
-    // 0! is 1.
-    constexpr int factorial(const unsigned int n) {
-        return n == 0 ? 1 : n * factorial(n - 1);
+namespace declarations_demo {
+struct S {
+    static const int sum_const(int a, int b) {
+        return a + b;
     }
 
-    // Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
-    constexpr int fibonacci(const unsigned int n) {
-        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n -2);
+    static constexpr int sum_constexpr(int a, int b) {
+        return a + b;
     }
+};
+
+// 0! is 1.
+constexpr int factorial(const unsigned int n) {
+    return n == 0 ? 1 : n * factorial(n - 1);
+}
+
+// Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
+constexpr int fibonacci(const unsigned int n) {
+    return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n -2);
 }
 
 void constexpr_demo() {
@@ -85,9 +84,11 @@ void fibonacci_demo() {
     constexpr int n2 = fibonacci(11);
 }
 
-void declarations_demo(){
-    std::cout << "declarations_demo()" << std::endl;
+void run(){
+    std::cout << "declarations_demo::run()" << std::endl;
     constexpr_demo();
     factorial_demo();
     fibonacci_demo();
+}
+
 }

@@ -1,5 +1,5 @@
 #pragma once
 
-namespace declarations_demo {
+namespace lambda_demo {
     void run();
 }
