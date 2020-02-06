@@ -6,6 +6,8 @@ C++11/14/17 terminal application which demonstrates various features of modern C
 
 ## Compiling on the native OS
 
+### Compiling with cmake
+
 Verify that you have installed cmake and make:
 
 ```
@@ -43,7 +45,7 @@ gcc - GNU project C and C++ compiler.
 When you compile C++ programs, you should invoke GCC as g++ instead.
 ```
 
-
+```
 $ gcc --version
 gcc (Ubuntu 7.4.0-1ubuntu1~18.04.1) 7.4.0
 Copyright (C) 2017 Free Software Foundation, Inc.
@@ -52,7 +54,6 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 $ which gcc
 /usr/bin/gcc
-
 
 $ /usr/bin/gcc --version
 gcc (Ubuntu 7.4.0-1ubuntu1~18.04.1) 7.4.0
@@ -90,6 +91,27 @@ Run:
 $ cmake . && make
 ```
 
+### Compiling by directly using g++
+
+Add task to `tasks.json`:
+
+```
+"label": "g++ build active file",
+"command": "/usr/bin/g++",
+"args": [
+    "-std=c++17"                            // support C++17
+    "-Xlinker"
+    "-Map=${workspaceFolder}/output.map"    // create map file
+    "-v"                                    // verbose output
+    "${workspaceFolder}/main.cpp",
+    "${workspaceFolder}/src/*.cpp",
+    "-I",                                   // use the following path to header files
+    "${workspaceFolder}/include",
+    "-o",                                   // specify the binary output
+    "${workspaceFolder}/cpp-demo"
+],
+```
+
 ## Compiling in Docker image
 
 Compiling the project takes place during the build of the application's Docker image:
@@ -117,5 +139,25 @@ Building and running Docker image in a single command:
 $ docker build -t cpp-demo . && docker run --rm --name cpp-demo cpp-demo
 ```
 
+# Getting the assembly code
+
+Use `g++` with `-S` option:
+
+```
+cpp-demo$ /usr/bin/g++ -S -o functions_demo_asm.s -I include src/functions_demo.cpp
+```
+This generates `functions_demo_asm.s` file:
+```
+cpp-demo$ cat functions_demo_asm.s
+```
+
+To see the assembly code after certain level of optimizations is enabled use `-Ox` flag where x is the optimization level:
+```
+cpp-demo$ /usr/bin/g++ -O2 -S -o functions_demo_asm.s -I include src/functions_demo.cpp
+```
+
+
 # References
 [C++ development with Docker containers in Visual Studio Code | C++ Team Blog](https://devblogs.microsoft.com/cppblog/c-development-with-docker-containers-in-visual-studio-code/)
+https://stackoverflow.com/questions/137038/how-do-you-get-assembler-output-from-c-c-source-in-gcc
+https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html

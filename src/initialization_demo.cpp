@@ -5,8 +5,14 @@
 
 namespace initialization_demo{
 
-// uniform initialization
+// Uniform Initialization
+// works at compile time.
 // Scalar types are initialized in the same way as vector types - with initializer list.
+// It automatically initializes the variable to 0 (or pointers to nullptr), thereby preventing runtime bugs.
+//
+// https://en.cppreference.com/w/cpp/language/list_initialization
+// https://stackoverflow.com/questions/21825933/any-difference-between-copy-list-initialization-and-traditional-copy-initializat
+//
 void list_initialization_demo() {
 
     // value-initialization
@@ -96,6 +102,15 @@ void list_initialization_demo() {
 
     //std::initializer_list<int> il1 = {1, 3, 5, 7};
     //std::cout << "il1 = " << il1 << std::endl;
+
+    std::cout << "arr3 elements: " << "\n";
+    int arr3[]{1, 2, 3};
+    for(auto i : arr3) {
+        std::cout << i << "\n";
+    }
+
+    int* pInt {};
+    assert(pInt == nullptr);
 }
 
 void run() {

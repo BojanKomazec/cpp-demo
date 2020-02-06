@@ -4,6 +4,15 @@
 
 namespace reference_demo {
 
+    // reference type can't be declared as const reference as by its nature, it's always const (non-reassignable)
+    void printInt(const int& n) {
+        // This would be possible if type of n was "int&"
+        // If it's "const int&" then we'll get this error: assignment of read-only reference ‘n’
+        // n = 34;
+
+        std::cout << "n = " << n << std::endl;
+    }
+
     void reference_demo(){
 
         // referent
@@ -35,7 +44,21 @@ namespace reference_demo {
         // reference *is* the referent, so changing the reference changes the state of the referent
         rn1 = 2;
         assert(n1 == 2);
+
+        std::cout << "Passing to printInt() value " << n1 << std::endl;
+        printInt(n1);
+
+        // It is not possible to bind non-const reference to a rvalue (constant/literal)
+        // error: cannot bind non-const lvalue reference of type ‘int&’ to an rvalue of type ‘int’
+        // int& rc1 = 2;
+
+        // const reference can be bound to a rvlaue (constant/literal)
+        const int& rc1 = 2;
     }
+
+    // If we want to change the value of some variable in a function, we need to pass to that function either a pointer
+    // to that variable or a reference. It is easier and more readable to use references as they don't need dereferencing
+    // like pointers do.
 
     // Add two numbers and return the result through a reference parameter
     void Add(int a, int b, int &result) {

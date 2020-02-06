@@ -4,6 +4,21 @@
 
 namespace pointer_demo {
 
+    void printInt(const int* const pInt) {
+        // To prevent application crashing in runtime due to dereferencing nullptr
+        // always perform nullptr check.
+        if (pInt == nullptr) {
+            return;
+        }
+
+        int temp = 34;
+        // This would be possible if type of pInt was "int*" or const int*"
+        // If it's "const int* const" then we'll get this error: assignment of read-only parameter ‘pInt’
+        // pInt = &temp;
+
+        std::cout << "*pInt = " << *pInt << std::endl;
+    }
+
     void pointer_demo(){
         int *pInt1, *pInt2, n1;
 
@@ -41,6 +56,33 @@ namespace pointer_demo {
         // *pInt2 = 3;
         // this compiles but throws error in runtime: Segmentation fault (core dumped)
         // n2 = *pInt2;
+
+        printInt(pInt2);
+
+        const int n3 = 0;
+
+        // error: invalid conversion from ‘const int*’ to ‘int*’ [-fpermissive]
+        // int* pInt3 = &n3;
+        const int* pInt3 = &n3; // ok
+
+        // error: assignment of read-only location ‘* pInt3’
+        // *pInt3 = 1;
+
+        // pointer to const T can take address of non-const instance of T
+        // (also, non-const pointer can be reassigned a new value)
+        pInt3 = &n2;
+        assert(*pInt3 == 2);
+
+        // ...but it can't change its value as pointer is declared as pointer to const T
+        // *pInt3 = 3;
+
+        const int* const pInt4 = &n3;
+
+        // error: assignment of read-only variable ‘pInt4’
+        // pInt4 = &n2;
+
+        std::cout << "Passing to printInt() int value " << n3 << std::endl;
+        printInt(&n3);
     }
 
     // Add two numbers and return the sum
