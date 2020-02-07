@@ -1,6 +1,8 @@
 #include <iostream>
 #include <iostream_demo.hpp>
+#include <class_demo.hpp>
 #include <declarations_demo.hpp>
+#include <dynamic_memory_management_demo.hpp>
 #include <functions_demo.hpp>
 #include <initialization_demo.hpp>
 #include <lambda_demo.hpp>
@@ -17,7 +19,9 @@ int main(int argc, char const *argv[]) {
       std::cout << "Your compiler supports C++17." << std::endl;
   }
 
+  class_demo::run();
   declarations_demo::run();
+  dynamic_memory_management_demo::run();
   functions_demo::run();
   initialization_demo::run();
   iostream_demo::run();
