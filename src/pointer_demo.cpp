@@ -124,6 +124,23 @@ namespace pointer_demo {
         assert(n3 == 6);
     }
 
+    void shallow_vs_deep_copy_demo() {
+        int* pInt1 = new int(123);
+
+        // shallow copy
+        int* pInt2 = pInt1;
+
+        int* pInt3 = new int(*pInt1);
+
+        if (pInt1 != nullptr){
+            delete pInt1;
+        }
+
+        if (pInt3 != nullptr){
+            delete pInt3;
+        }
+    }
+
     void run() {
         std::cout << "pointer_demo::run()" << std::endl;
         pointer_demo();

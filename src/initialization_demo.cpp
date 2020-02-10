@@ -105,7 +105,14 @@ void list_initialization_demo() {
 
     std::cout << "arr3 elements: " << "\n";
     int arr3[]{1, 2, 3};
+    std::cout << "arr3:" << "\n";
     for(auto i : arr3) {
+        std::cout << i << "\n";
+    }
+
+    int arr4[] = {4, 5, 6, 7};
+    std::cout << "arr4:" << "\n";
+    for(auto i : arr4) {
         std::cout << i << "\n";
     }
 
