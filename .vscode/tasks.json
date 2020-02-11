@@ -19,10 +19,7 @@
             "options": {
                 "cwd": "/usr/bin"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "type": "shell",
@@ -31,10 +28,11 @@
                 "cwd": "${workspaceFolder}/build"
             },
             "command": "cmake",
-            "args" : [
+            "args": [
                 "-DCMAKE_BUILD_TYPE=Debug",
                 ".."
-            ]
+            ],
+            "group": "build"
         },
         {
             "type": "shell",
@@ -43,12 +41,24 @@
                 "cwd": "${workspaceFolder}/build"
             },
             "command": "make",
-            "args" : [
+            "args": [
                 "-j",
                 "4"
-            ]
+            ],
+            "group": "build"
         },
-
+        {
+            "type": "shell",
+            "label": "CMake && make",
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "command": "cmake make -DCMAKE_BUILD_TYPE=Debug .. && make -j 4",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
     ],
     "version": "2.0.0"
 }
