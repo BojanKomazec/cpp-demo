@@ -12,6 +12,7 @@
 #include <statements_demo.hpp>
 #include <static_demo.hpp>
 #include <strings_demo.hpp>
+#include <utility_demo.hpp>
 
 int main(int argc, char const *argv[]) {
   std::cout << "main()" << std::endl;
@@ -19,19 +20,24 @@ int main(int argc, char const *argv[]) {
       std::cout << "Your compiler supports C++17." << std::endl;
   }
 
-  class_demo::run();
-  declarations_demo::run();
-  dynamic_memory_management_demo::run();
-  functions_demo::run();
-  initialization_demo::run();
-  iostream_demo::run();
-  lambda_demo::run();
-  pointer_demo::run();
-  recursion_demo::run();
-  reference_demo::run();
-  static_demo::run();
-  statements_demo::run();
-  strings_demo::run();
+  if (true) {
+    utility_demo::run();
+  } else {
+    class_demo::run();
+    declarations_demo::run();
+    dynamic_memory_management_demo::run();
+    functions_demo::run();
+    initialization_demo::run();
+    iostream_demo::run();
+    lambda_demo::run();
+    pointer_demo::run();
+    recursion_demo::run();
+    reference_demo::run();
+    static_demo::run();
+    statements_demo::run();
+    strings_demo::run();
+    utility_demo::run();
+  }
 
   return 0;
 }

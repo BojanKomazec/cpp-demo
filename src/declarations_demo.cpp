@@ -254,8 +254,359 @@ void namespace_demo(){
     A::B::func_ab();
 }
 
+// returns Rvalue
+// (n1 + n2) is a temporary value.
+// We cannot assign a value to it.
+int add(int n1, int n2) {
+    return n1 + n2;
+}
+
+// returns Lvalue
+// Function returns n, which is an alias of the value that persists before and after function call
+// We can assign a value to it.
+int& increment(int& n) {
+    n += 1;
+    return n;
+}
+
+int Square(int&& x){
+    return x*x;
+}
+
+// Lvalue:
+// - has a name
+// - all variables are Lvalues
+// - can be assigned a value
+// - some expressions return Lvalue
+// - Lvalue persists beyond the expression
+// - functions that return by reference return Lvalue
+// - it is possible to create a reference to it ("Lvalue reference"); always bound to an Lvalue
+
+// Rvalue:
+// - does not have a name
+// - temporaries
+// - cannot be assigned a value
+// - some expressions return Rvalue
+// - Rvalue does not persist beyond the expression
+// - functions that return by value return Rvalue
+// - from C++11: it is possible to create a reference to it ("Rvalue reference"); always bound to an Rvalue
+void lvalues_rvalues_demo() {
+    std::cout << "lvalues_rvalues_demo::run()" << std::endl;
+
+    // A constant (1) is Rvalue
+    1;
+
+    // x is Lvalue
+    int x = 1;
+
+    // y is Lvalue
+    int y = 2;
+
+    // expression x + y returns Rvalue
+    x + y;
+    int z = x + y;
+
+    // ++x, x++ return Lvalue
+    ++x; // increment x and then return it
+    assert(x == 2);
+
+    x++; // return x and then increment it
+    assert(x == 3);
+
+    ++x = 10;
+    assert(x == 10);
+
+    // error: lvalue required as left operand of assignment
+    // add(1, 2) = 1;
+
+    increment(y) = 11;
+    assert(y == 11);
+
+    int &&res1 = Square(8);
+    const int &res2 = Square(20);
+    int res3 = Square(Square(5));
+}
+
+// void print(int n) {
+//     std::cout << "print(int). n = " << n << std::endl;
+// }
+
+void print(int& n) {
+    std::cout << "print(int&). n = " << n << std::endl;
+}
+
+void print(const int& n) {
+    std::cout << "print(const int&). n = " << n << std::endl;
+}
+
+// if commented, print(const int&) will be called for temporary values
+// if uncommented, this overload will be called for temporary values =>
+// this function can be used to test if some value is a temporary one.
+void print(const int&& n) {
+    std::cout << "print(const int&&). n = " << n << std::endl;
+}
+
+// Rvalue reference
+// - introduced in C++11 to implement move semantics
+// - always created to a temporary value
+// - represents a temporary value
+// - created with && operator
+// - cannot bind to Lvalue
+
+// https://stackoverflow.com/questions/49141435/why-can-temporary-objects-be-bound-to-const-reference
+// https://stackoverflow.com/questions/25025538/why-reference-can-not-capture-temporary-while-const-ref-and-rval-ref-can
+
+void rvalue_reference_demo() {
+    std::cout << "\nrvalue_reference_demo()\n" << std::endl;
+
+    // A constant is an Rvalue.
+    int&& rn1 = 1;
+    assert(rn1 == 1);
+    assert(rn1 + 1 == 2);
+    std::cout << "rn1 = " << rn1 << std::endl;
+
+    // reassignment
+    rn1 = 2;
+    assert(rn1 == 2);
+
+    const int&& crn1 = 1;
+    assert(crn1 == 1);
+    // error: assignment of read-only reference ‘crn1’
+    // crn1 = 2;
+
+    // Value of expression (1 + 2) is an Rvalue as it's a temporary
+    int&& rn2 = 1 + 2;
+
+    // Function returns by value => it's return value is a temporary
+    int&& rn3 = add(1, 2);
+    const int&& crn3 = add(1, 2);
+
+    int n4 = 1;
+    // error: cannot bind rvalue reference of type ‘int&&’ to lvalue of type ‘int’
+    // int&& rn4 = n4;
+    int& rn4 = n4;
+
+    // error: cannot bind non-const lvalue reference of type ‘int&’ to an rvalue of type ‘int’
+    // int& rn41 = 1;
+    // error: cannot bind non-const lvalue reference of type ‘int&’ to an rvalue of type ‘int’
+    // int& rn42 = add(1, 2);
+
+    //  error: cannot bind rvalue reference of type ‘int&&’ to lvalue of type ‘int’
+    // int&& rn5 = increment(n4);
+    int& rn5 = increment(n4);
+
+    // const Lvalue reference can bind both to Rvalue and Lvalue
+    const int& crn6 = increment(n4);
+    const int& crn61 = add(1, 2);
+
+    const int& crn7 = 1;
+
+    int n5 = 5;
+    print(n5);      // print(int&). n = 5
+    print(n5 + 1);  // print(const int&). n = 6
+
+    // very interesting (!)
+    print(n5++);    // print(const int&). n = 5
+    assert(n5 == 6);
+
+    // very interesting (!)
+    print(++n5);    // print(int&). n = 7
+    assert(n5 == 7);
+
+    print(16);      // print(const int&). n = 16
+    print(16 + 1);  // print(const int&). n = 17
+
+// if print(const int&&) is uncommented, the output will be:
+// print(int&). n = 5
+// print(const int&&). n = 6
+// print(const int&&). n = 5
+// print(int&). n = 7
+// print(const int&&). n = 16
+// print(const int&&). n = 17
+
+}
+
+// Copy Semantics
+// - copy of the object is created through copy c-tor
+// - copy c-tor copies the state of the object
+// - copy c-tor can perform either shallow or deep copy
+// - deep copy is required for objets that allocate resources (memory, handles etc...)
+// e.g. if class has a pointer member, it manages some memory and this memory content
+// also has to be copied
+// - in some cases, a copy of a temporary object is created; this copy object has to allocate
+// memory and copy the content of the original's memory and this is wasteful as
+// we allocate same amount of memory and copy bytes only to see how destruction of temporary
+// deallocates original memory...a memory already allocated and which could simply be transfered
+// to a new object..
+// Example: function returns custom type object by value; in this case a temp object is created
+
+// Move Semantics
+// - introduced for faster way of copying objects
+// - if we look the example above, Move means that the ownership of the resources will be moved
+// to a new object
+// - if temp object contains pointer to a memory, during move construction this address will be
+// copied to a new object's pointer and old pointer will be set to null so when temp object
+// gets destroyed, no memory deallocation takes place (delete nullptr does nothing)
+// - this way a new object "steals" resources from the original (temp) object.
+// - state of the original/other object is *moved* to the new/copy object.
+// - as no memory allocation and data copying takes place, this is faster way to copy from temp
+// - Move Semantics should be used if some expression returns a temporary which has to be copied
+// to some other object. To detect this temporary we need to implement "move constructor" which
+// will be used automatically if original object is a temporary.
+
+class Integer {
+    int* pVal_ {};
+public:
+    Integer() {
+        std::cout << "Integer::Integer()" << std::endl;
+        pVal_ = new int(0);
+    }
+
+    Integer(int n) {
+        std::cout << "Integer::Integer(int). n = " << n << std::endl;
+        pVal_ = new int(n);
+    }
+
+    // copy c-tor
+    // It allocates memory and copies data into it from original object.
+    // If original object is a temporary, this is not efficient as copy should simply steal the ownership of memory
+    // from the original/other object. This is done through move constructor - see class Integer2.
+    Integer(const Integer& other) {
+        std::cout << "Integer::Integer(const Integer&). other.GetValue() = " << other.GetValue() <<  std::endl;
+        pVal_ = new int(other.GetValue());
+    }
+
+    ~Integer() {
+        std::cout << "Integer::~Integer()" << std::endl;
+        delete pVal_;
+    }
+
+    void SetValue(int n) {
+        delete pVal_;
+        pVal_ = new int(n);
+    }
+
+    int GetValue() const {
+        return *pVal_;
+    }
+};
+
+class Integer2 {
+    int* pVal_ {};
+public:
+    Integer2() {
+        std::cout << "Integer2::Integer2()" << std::endl;
+        pVal_ = new int(0);
+    }
+
+    Integer2(int n) {
+        std::cout << "Integer2::Integer2(int). n = " << n << std::endl;
+        pVal_ = new int(n);
+    }
+
+    // copy c-tor
+    // It allocates memory and copies data into it from original object.
+    // If original object is a temporary, this is not efficient as copy should simply steal the ownership of memory
+    // from the original/other object. This is done through move constructor.
+    Integer2(const Integer2& other) {
+        std::cout << "Integer2::Integer2(const Integer2&). other.GetValue() = " << other.GetValue() <<  std::endl;
+        pVal_ = new int(other.GetValue());
+    }
+
+    // Move Constructor
+    // It moves the state (and ownership over resources) from other object to this one.
+    // It does not take const rvalue reference.
+    // https://stackoverflow.com/questions/10770181/should-a-move-constructor-take-a-const-or-non-const-rvalue-reference
+    Integer2(Integer2&& other) {
+        std::cout << "Integer2::Integer2(Integer2&&)" << std::endl;
+        pVal_ = other.pVal_;
+
+        // let know the other object we took the ownership over resource
+        other.pVal_ = nullptr;
+    }
+
+    // "The Rule of 5"
+    // If class has custom implementation of any of these 5 member methods, all of them should be implemented.
+    // - destructor
+    // - copy constructor
+    // - copy assignment operator
+    // - move constructor
+    // - move assignment operator
+    //
+    // Compiler will not automatically generate move c-tor and move assignment operator if user implements
+    // either copy c-tor or copy assignment operator.
+    // Implementation of a copy constructor or assignment or destructor will block implicit generation of move operations.
+
+    ~Integer2() {
+        std::cout << "Integer2::~Integer2()" << std::endl;
+        delete pVal_;
+    }
+
+    void SetValue(int n) {
+        delete pVal_;
+        pVal_ = new int(n);
+    }
+
+    int GetValue() const {
+        return *pVal_;
+    }
+};
+
+Integer add(const Integer& n1, const Integer& n2){
+    Integer n;
+    n.SetValue(n1.GetValue() + n2.GetValue());
+    return n;
+    // return Integer(n1.GetValue() + n2.GetValue());
+}
+
+Integer2 add2(const Integer2& n1, const Integer2& n2){
+    Integer2 n;
+    n.SetValue(n1.GetValue() + n2.GetValue());
+    return n;
+    // return Integer(n1.GetValue() + n2.GetValue());
+}
+
+// If copy elision is desibled in compiler options the output should be like this:
+//
+// Integer::Integer(int). n = 1
+// Integer::Integer(int). n = 2
+// Integer::Integer()
+// Integer::Integer(const Integer&). other.GetValue() = 3
+// Integer::~Integer()
+// Integer::~Integer()
+// Integer::~Integer()
+// Integer::~Integer()
+//
+// Integer2::Integer2(int). n = 1
+// Integer2::Integer2(int). n = 2
+// Integer2::Integer2()
+// Integer2::Integer2(Integer2&&)
+// Integer2::~Integer2()
+// Integer2::~Integer2()
+// Integer2::~Integer2()
+// Integer2::~Integer2()
+void move_semantics_demo() {
+    std::cout << "\nmove_semantics_demo()\n" << std::endl;
+
+    {
+        Integer n1(1), n2(2);
+
+        // Disable copy elision in compiler options in order to make copy-ctor being called.
+        // GetValue() is called on a temporary object.
+        n1.SetValue(add(n1, n2).GetValue());
+    }
+
+    {
+        Integer2 n21(1), n22(2);
+
+        // Disable copy elision in compiler options in order to make copy-ctor being called.
+        // GetValue() is called on a temporary object.
+        n21.SetValue(add2(n21, n22).GetValue());
+    }
+}
+
 void run(){
-    std::cout << "declarations_demo::run()" << std::endl;
+    std::cout << "\n\n ***** declarations_demo::run() ***** \n\n" << std::endl;
     auto_demo();
     const_demo();
     const_with_ptrs_and_refs_demo();
@@ -263,6 +614,9 @@ void run(){
     factorial_demo();
     fibonacci_demo();
     namespace_demo();
+    lvalues_rvalues_demo();
+    rvalue_reference_demo();
+    move_semantics_demo();
 }
 
 }

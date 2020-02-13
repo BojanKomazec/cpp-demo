@@ -121,7 +121,7 @@ void list_initialization_demo() {
 }
 
 void run() {
-    std::cout << "initialization_demo::run()" << std::endl;
+    std::cout << "\n\n ***** initialization_demo::run() ***** \n\n" << std::endl;
     list_initialization_demo();
 }
 
