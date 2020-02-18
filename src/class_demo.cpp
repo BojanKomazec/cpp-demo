@@ -509,6 +509,52 @@ void default_and_deleted_member_functions_demo() {
     // ie1.SetValue(3.14f);
 }
 
+class IntegerF {
+    int* pVal_;
+public:
+    IntegerF(int n) {
+        pVal_ = new int(n);
+    }
+    ~IntegerF() {
+        delete pVal_;
+        pVal_ = nullptr;
+    }
+
+    //
+    // friend keyword
+    //
+    // this function can access class' private members
+    friend void GetValue(const IntegerF& n);
+    // this class can access class' private members
+    friend class Printer;
+    // NOTE: using friendships is discouraged as it breaks the encapsulation and should only be used as the last resort
+    // for solving an issue that requires access to private members.
+};
+
+// This is a global function that wants to access class's private member.
+void GetValue(const IntegerF& n) {
+    // If we don't declare this function a friend of class IntegerF then the following compilationerror will occur:
+    //  error: ‘int* class_demo::IntegerF::pVal_’ is private within this context
+    int val = *n.pVal_;
+    std::cout << "IntegerF value = " << val << std::endl;
+}
+
+class Printer {
+public:
+    void Print(const IntegerF& n) {
+        int val = *n.pVal_;
+        std::cout << "Printer::Print(): IntegerF value = " << val << std::endl;
+    }
+};
+
+void friend_demo() {
+    IntegerF n(1);
+    GetValue(n);
+
+    Printer printer;
+    printer.Print(n);
+}
+
 void run() {
     std::cout << "\n\n ***** class_demo::run() ***** \n\n" << std::endl;
     class_demo();
@@ -516,6 +562,7 @@ void run() {
     copy_constructor_demo();
     delegating_constructors_demo();
     default_and_deleted_member_functions_demo();
+    friend_demo();
 }
 
 }

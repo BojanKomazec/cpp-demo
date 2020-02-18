@@ -6,12 +6,15 @@
 #include <functions_demo.hpp>
 #include <initialization_demo.hpp>
 #include <lambda_demo.hpp>
+#include <operators_demo.hpp>
 #include <pointer_demo.hpp>
 #include <recursion_demo.hpp>
 #include <reference_demo.hpp>
+#include <smart_pointers_demo.hpp>
 #include <statements_demo.hpp>
 #include <static_demo.hpp>
 #include <strings_demo.hpp>
+#include <type_conversions_demo.hpp>
 #include <utility_demo.hpp>
 
 int main(int argc, char const *argv[]) {
@@ -21,7 +24,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    utility_demo::run();
+    type_conversions_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
@@ -30,9 +33,11 @@ int main(int argc, char const *argv[]) {
     initialization_demo::run();
     iostream_demo::run();
     lambda_demo::run();
+    operators_demo::run();
     pointer_demo::run();
     recursion_demo::run();
     reference_demo::run();
+    smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
     strings_demo::run();

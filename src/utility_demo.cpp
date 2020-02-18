@@ -72,7 +72,7 @@ void move_demo() {
     // What if we want to move state of n1 into another object?
     // How to enforce calling move c-tor?
     // We need to make Rvalue from Lvalue n1.
-    // std::move() does exactly that. It forces move operarion on Lvalues.
+    // std::move() does exactly that. It forces move operation on Lvalues.
     // Also, some objects are non-copyable, but they can be moved through std::move. e.g. std::unique_ptr, std::thread
 
     // Integer::Integer(int). n = 1
