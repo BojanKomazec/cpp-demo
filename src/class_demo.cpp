@@ -555,6 +555,159 @@ void friend_demo() {
     printer.Print(n);
 }
 
+namespace initialization_vs_assignment{
+
+class Integer {
+    int* pVal_ {};
+public:
+    Integer() {
+        std::cout << "Integer::Integer()" << std::endl;
+        pVal_ = new int(0);
+    }
+
+    Integer(int n) {
+        std::cout << "Integer::Integer(int). n = " << n << std::endl;
+        pVal_ = new int(n);
+    }
+
+    Integer(const Integer& other) {
+        std::cout << "Integer::Integer(const Integer&). other.GetValue() = " << other.GetValue() <<  std::endl;
+        pVal_ = new int(other.GetValue());
+    }
+
+    Integer(Integer&& other) {
+        std::cout << "Integer::Integer(Integer&&)" << std::endl;
+        pVal_ = other.pVal_;
+        other.pVal_ = nullptr;
+    }
+
+    ~Integer() {
+        std::cout << "Integer::~Integer()" << std::endl;
+        delete pVal_;
+    }
+
+    void SetValue(int n) {
+        delete pVal_;
+        pVal_ = new int(n);
+    }
+
+    int GetValue() const {
+        return *pVal_;
+    }
+
+    // pre-increment operator
+    Integer& operator++() {
+        ++(*(this->pVal_));
+        return *this;
+    }
+
+    // post-increment operator
+    Integer operator++(int) {
+        Integer n(*(this->pVal_));
+        ++(*(this->pVal_));
+        return n;
+    }
+
+    // comparison operator
+    bool operator==(const Integer& other) const {
+        return *(this->pVal_) == other.GetValue();
+    }
+
+    // Assignment Operator
+    Integer& operator= (const Integer& other){
+        std::cout << "Integer::operator=(const Integer&)" << std::endl;
+        if (this != &other) {
+            delete this->pVal_;
+            this->pVal_ = new int(*(other.pVal_));
+        }
+        return *this;
+    }
+
+    // Move Assignment Operator
+    Integer& operator= (Integer&& other){
+        std::cout << "Integer::operator=(Integer&&)" << std::endl;
+        if (this != &other) {
+            delete this->pVal_;
+            this->pVal_ = other.pVal_;
+            other.pVal_ = nullptr;
+        }
+        return *this;
+    }
+
+    void operator()() {
+        std::cout << "Integer::operator()" << std::endl;
+    }
+};
+
+class EntityA {
+    Integer id_;
+public:
+    EntityA(const Integer& id) {
+        std::cout << "EntityA::EntityA(const Integer&)" << std::endl;
+        id_ = id;
+    }
+    ~EntityA() {
+        std::cout << "EntityA::~EntityA()" << std::endl;
+    }
+};
+
+class EntityB {
+    Integer id_;
+    int n_;
+public:
+    // Use member initializer list to initialize members in order to make members
+    // created & initialized with a single function call (copy c-tor) rather then with
+    // two function calls (default c-tor and assignment operator).
+    // Class members are initialized in the initializer list in the order they are declared in class.
+    EntityB(const Integer& id):id_(id), n_(id.GetValue()) {
+        std::cout << "EntityB::EntityB(const Integer&)" << std::endl;
+    }
+    ~EntityB() {
+        std::cout << "EntityB::~EntityB()" << std::endl;
+    }
+};
+
+void demo(){
+    std::cout << "initialization_vs_assignment::demo()" << std::endl;
+    // initialization
+    // parameterized c-tor is called; NO temp objects are being created => it is preferred to assignment
+    Integer n1(1);
+
+    // assignment
+    // temp Integer object is built from 11, move assignment operator is called and then temp object is destroyed
+    n1 = 11;
+
+    std::cout << "n1 = " << n1.GetValue() << std::endl;
+
+    // default c-tor is called
+    Integer n2;
+
+    // assignment
+    // temp Integer object is built from 2, move assignment operator is called and then temp object is destroyed
+    n2 = Integer(2);
+
+    std::cout << "n2 = " << n2.GetValue() << std::endl;
+
+    // temp Integer object is created from 1
+    // EntityA parametrized c-tor is called and in it:
+    // - EntityA::id_ is created with Integer default c-tor
+    // - Integer assignment operator is called (assignment is used to initialize id_. We want to avoid this!)
+    // temp Integer is destroyed
+    EntityA ea(1);
+
+    std::cout << "EntityA created." << std::endl;
+
+    // temp Integer is created from 2
+    // EntityB parametrized c-tor is called and in it:
+    // - EntityB::id_ is created with copy c-tor (object is created & initialized with a single function call. This is what we want.)
+    // temp Integer is destroyed
+    EntityB eb(2);
+
+    std::cout << "EntityB created." << std::endl;
+}
+
+}
+
 void run() {
     std::cout << "\n\n ***** class_demo::run() ***** \n\n" << std::endl;
     class_demo();
@@ -563,6 +716,7 @@ void run() {
     delegating_constructors_demo();
     default_and_deleted_member_functions_demo();
     friend_demo();
+    initialization_vs_assignment::demo();
 }
 
 }

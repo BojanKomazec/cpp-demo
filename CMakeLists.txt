@@ -33,3 +33,6 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 # set the compilation mode to Debug (non-optimized code with debug symbols)
 set(CMAKE_BUILD_TYPE Debug)
+
+# set(MY_CUSTOM_PREPROCESSOR_SYMBOL "SomeRandomValueOfMyCutomPreprocessorSymbol")
+add_definitions(-DPREPROCESSOR_DIAGNOSTICS -DMY_CUSTOM_PREPROCESSOR_SYMBOL="SomeRandomValueOfMyCutomPreprocessorSymbol")

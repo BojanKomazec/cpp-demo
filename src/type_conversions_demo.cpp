@@ -130,6 +130,8 @@ public:
     }
     // explicit prevent implicit calls of parameterized c-tor
     // Allows only explicit calls.
+    // Temporary Integer2 object cannot be created from integer (1).
+    // Integer2 n = 1; // won't compile
     explicit Integer2(int n) {
         std::cout << "Integer2::Integer2(int). n = " << n << std::endl;
         pVal_ = new int(n);
@@ -281,6 +283,7 @@ void primitive_to_user_type_conversion_demo(){
 
     // Integer2::Integer2(int) is declared as 'explicit'
     // error: conversion from ‘int’ to non-scalar type ‘type_conversions_demo::Integer2’ requested
+    // Temporary Integer2 object cannot be created from integer (5).
     // Integer2 n5 = 5;
     Integer2 n5(5);
 }

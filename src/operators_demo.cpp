@@ -150,9 +150,13 @@ std::istream& operator>> (std::istream& is, Integer& n) {
 //- operator functions should be non-static (except for new and delete)
 //- operator that accepts more than one argument should always have one of the operands as user-deined type
 //- if binary operator accepts a primitive type as the first argument then it has to be overloaded as global function
+//- If the first operand is a user-defined type, then you can overload as member or global function.
 //- overloading of operators . ?: sizeof etc...is not allowed
 //- cannot define new operators or overload them
 //- do operator overloads only to make operations conventional; otherwise they can be confusing
+//
+//
+
 void operator_overloading_demo() {
     Integer n1(1), n2(2);
 
@@ -208,6 +212,14 @@ void operator_overloading_demo() {
     std::cout << "n8 = " << n8 << std::endl;
 
     n8();
+
+    Integer n9;
+    // Compiler resolves the following expression as:
+    // operator<<(cout, n9).operator<<(endl);
+    // We have overloaded operator<< for Integer and it returns cout.
+    // The operator << returns a cout object and that invokes the operator<< for endl operand, as
+    // it is already overloaded in the ostream class.
+    std::cout << n9 << std::endl;
 }
 
 void run() {

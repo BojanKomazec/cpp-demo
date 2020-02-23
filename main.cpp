@@ -8,6 +8,7 @@
 #include <lambda_demo.hpp>
 #include <operators_demo.hpp>
 #include <pointer_demo.hpp>
+#include <preprocessor_demo.hpp>
 #include <recursion_demo.hpp>
 #include <reference_demo.hpp>
 #include <smart_pointers_demo.hpp>
@@ -24,9 +25,8 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    type_conversions_demo::run();
-  } else {
     class_demo::run();
+  } else {
     declarations_demo::run();
     dynamic_memory_management_demo::run();
     functions_demo::run();
@@ -35,12 +35,14 @@ int main(int argc, char const *argv[]) {
     lambda_demo::run();
     operators_demo::run();
     pointer_demo::run();
+    preprocessor_demo::run();
     recursion_demo::run();
     reference_demo::run();
     smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
     strings_demo::run();
+    type_conversions_demo::run();
     utility_demo::run();
   }
 
