@@ -24,6 +24,15 @@ public:
         pVal_ = nullptr;
     }
 
+    Integer& operator=(const Integer& other) {
+        std::cout << "Integer::operator=()" << std::endl;
+        if (this != &other) {
+            delete pVal_;
+            pVal_ = new int{*other.pVal_};
+        }
+        return *this;
+    }
+
     void SetValue(int n) {
          std::cout << "Integer::SetValue(int): n = " << n << std::endl;
         if (pVal_ != nullptr) {
@@ -96,9 +105,126 @@ void PassSharedPtrByVal(std::shared_ptr<Integer> p, int n) {
     std::cout << "PassSharedPtrByVal(): value = " << p->GetValue() << std::endl;
 }
 
+Integer* create_integer(int n) {
+    return new Integer{n};
+}
+
+void display(Integer* pInteger) {
+    if (pInteger) {
+        std::cout << "display(): pInteger->GetValue() = " << pInteger->GetValue() << std::endl;
+    } else {
+        std::cout << "display(): pInteger is nullptr" << std::endl;
+    }
+}
+
+// When this function is executed we can see that number of destructors matches the number or constructors
+// which means there are no memory leaks. But it is very easy to forget deleting all pointers manually and
+// so to introduce memory leaks. Modern C++ discourages writing code like this. Instead of using raw pointers
+// C++11 encourages developers to use smart pointers which are using RAII concept to automatically delete
+// pointers.
+void operate(int n) {
+    std::cout << "operate()" << std::endl;
+
+    Integer* pInteger = create_integer(n);
+    if (pInteger == nullptr) {
+        pInteger = new Integer{n};
+    }
+    pInteger->SetValue(1);
+    display(pInteger);
+    delete pInteger;
+    pInteger = nullptr;
+
+    pInteger = new Integer{};
+    // __LINE__ standard C macro that automatically expands into current line number
+    *pInteger = __LINE__;
+    display(pInteger);
+    delete pInteger;
+}
+
+void raw_pointers_demo() {
+    std::cout << "raw_pointers_demo()" << std::endl;
+
+    operate(1);
+}
+
+void pass_unique_ptr_by_value(std::unique_ptr<Integer> pInteger) {
+    std::cout << "pass_unique_ptr_by_value(). Value = " << pInteger->GetValue() << std::endl;
+}
+
+void pass_unique_ptr_by_ref(std::unique_ptr<Integer>& pInteger) {
+    std::cout << "pass_unique_ptr_by_ref(). Value = " << pInteger->GetValue() << std::endl;
+}
+
+// operate() function rewritten to use unique_ptr.
+// It is simpler and safer than operate(). We don't need to deal with memory management (call delete explicitly).
+void operate_with_unique_ptr(int n) {
+    std::cout << "operate_with_unique_ptr()" << std::endl;
+
+    std::unique_ptr<Integer> pInteger{create_integer(n)};
+    if (pInteger == nullptr) {
+        // error: no match for ‘operator=’ (operand types are ‘std::unique_ptr<smart_pointers_demo::Integer>’ and ‘smart_pointers_demo::Integer*’)
+        // pInteger = new Integer{n};
+
+        // If the smart pointer holds an existing pointer, it will be deleted first and then it will take ownership of the new pointer
+        pInteger.reset(new Integer{n});
+    }
+
+    // We can call the member functions of the underlying pointer.
+    // Arrow operator is overloaded:
+    pInteger->SetValue(1);
+
+    // direct access to underlying raw pointer is needed
+    display(pInteger.get());
+
+    // Overload of operator= which accepts nullptr as a parameter.
+    // It deletes underlying pointer and assigns nullptr to it.
+    pInteger = nullptr;
+
+    pInteger.reset(new Integer{});
+
+    // We can call the member functions of the underlying pointer.
+    // Dereferencing operator is overloaded:
+    *pInteger = __LINE__;
+
+    display(pInteger.get());
+
+    // copy c-tor is deleted => can't copy unique_ptr
+    // error: use of deleted function ‘std::unique_ptr<_Tp, _Dp>::unique_ptr(const std::unique_ptr<_Tp, _Dp>&) [with _Tp = smart_pointers_demo::Integer; _Dp = std::default_delete<smart_pointers_demo::Integer>]’
+    // std::unique_ptr<Integer> pInteger2(pInteger);
+    // unique_ptr has move constructor: unique_ptr::unique_ptr(unique_ptr&& __u)
+    std::unique_ptr<Integer> pInteger2(std::move(pInteger));
+
+    // Don't try to access underlying pointer in pInteger
+    // Nevertheless, we can reuse it and assign a new pointer to it:
+    pInteger.reset(new Integer{2});
+
+    // copy c-tor is deleted => can't copy unique_ptr
+    // error: use of deleted function ‘std::unique_ptr<_Tp, _Dp>::unique_ptr(const std::unique_ptr<_Tp, _Dp>&) [with _Tp = smart_pointers_demo::Integer; _Dp = std::default_delete<smart_pointers_demo::Integer>]’
+    // pass_unique_ptr_by_value(pInteger2);
+
+    // We don't use pInteger2 after pass_unique_ptr_by_value(), pInteger2 will be destroyed =>
+    // we can move underlying resource into the new unique_ptr
+    pass_unique_ptr_by_value(std::move(pInteger2));
+
+    std::unique_ptr<Integer> pInteger3;
+    // assignment operator is deleted => we can't assign one unique_ptr to another
+    // error: use of deleted function ‘std::unique_ptr<_Tp, _Dp>& std::unique_ptr<_Tp, _Dp>::operator=(const std::unique_ptr<_Tp, _Dp>&) [with _Tp = smart_pointers_demo::Integer; _Dp = std::default_delete<smart_pointers_demo::Integer>]’
+    // pInteger3 = pInteger;
+    // unique_ptr has move assignment operator: unique_ptr::operator=(unique_ptr&& __u)
+    pInteger3 = std::move(pInteger);
+
+    // Passing by ref is useful when we still want to use uniqie_ptr after we pass it to some function.
+    pass_unique_ptr_by_ref(pInteger3);
+
+    std::cout << "pInteger3 value = " << pInteger3->GetValue() << std::endl;
+}
+
 // std::unique_ptr
-// - used when you don't want to share underlying resource
-// - it does NOT support copy semantics (copy c-tor and assignment operator are deleted member functions) => we cannot create a copy of the unique_ptr
+// - used when underlying resource (pointer) doesn't have to be shared with other parts of the code
+// - it is a class template so we have to specify the type (not pointer to type) in angular brackets
+// - it does NOT support copy semantics (copy c-tor and assignment operator are deleted member functions) =>
+//      we cannot create a copy of the unique_ptr
+// - it has an explicit c-tor => we cannot use assignment to initialize it; we need to use direct initialization
 // - it supports move semantics (move c-tor and assignment operators are defined) => we can move the resource ownership
 // - after it's been moved, this pointer should not be used
 void unique_ptr_demo() {
@@ -136,6 +262,8 @@ void unique_ptr_demo() {
     //
     // If we want to share ownership of the resource with PassUniquePtrByVal() (so we can keep
     // accessing resource after PassUniquePtrByVal() returns) we need to use std::shared_ptr
+
+    operate_with_unique_ptr(1);
 }
 
 void segmentation_fault_demo() {
@@ -208,6 +336,7 @@ void shared_ptr_demo() {
 
 void run() {
     std::cout << "smart_pointers_demo::run()" << std::endl;
+    raw_pointers_demo();
     memory_leak_demo();
     // segmentation_fault_demo();
     unique_ptr_demo();

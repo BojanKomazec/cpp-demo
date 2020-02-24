@@ -25,8 +25,9 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    class_demo::run();
+    smart_pointers_demo::run();
   } else {
+    class_demo::run();
     declarations_demo::run();
     dynamic_memory_management_demo::run();
     functions_demo::run();
@@ -38,7 +39,6 @@ int main(int argc, char const *argv[]) {
     preprocessor_demo::run();
     recursion_demo::run();
     reference_demo::run();
-    smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
     strings_demo::run();
