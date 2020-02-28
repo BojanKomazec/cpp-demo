@@ -3,6 +3,7 @@
 #include <class_demo.hpp>
 #include <declarations_demo.hpp>
 #include <dynamic_memory_management_demo.hpp>
+#include <enum_demo.hpp>
 #include <functions_demo.hpp>
 #include <initialization_demo.hpp>
 #include <lambda_demo.hpp>
@@ -25,7 +26,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    smart_pointers_demo::run();
+    enum_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
@@ -39,6 +40,7 @@ int main(int argc, char const *argv[]) {
     preprocessor_demo::run();
     recursion_demo::run();
     reference_demo::run();
+    smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
     strings_demo::run();
