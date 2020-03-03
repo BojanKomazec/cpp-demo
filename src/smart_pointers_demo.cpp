@@ -613,7 +613,7 @@ void solution_attempt(){
 // memmory are not longer available.
 // weak_ptr.lock() increases the reference count by 1 and returns shared_ptr.
 // Other shared_ptr might be destroyed but ref count will not become 0.
-//
+// https://stackoverflow.com/questions/37234969/is-it-correct-to-return-null-shared-ptr/37235251
 
 class Printer2 {
     // weak_ptr is weakly pointing to the resource that may be available or not.

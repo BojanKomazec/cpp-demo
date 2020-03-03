@@ -26,11 +26,12 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    enum_demo::run();
+    strings_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
     dynamic_memory_management_demo::run();
+    enum_demo::run();
     functions_demo::run();
     initialization_demo::run();
     iostream_demo::run();
@@ -43,7 +44,6 @@ int main(int argc, char const *argv[]) {
     smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
-    strings_demo::run();
     type_conversions_demo::run();
     utility_demo::run();
   }
