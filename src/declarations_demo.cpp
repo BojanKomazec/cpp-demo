@@ -88,6 +88,18 @@ constexpr int fibonacci(const unsigned int n) {
     return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n -2);
 }
 
+// constexpr = Constant Expression
+// - such expression MIGHT be evaluated in compile time
+// - can be applied to variable declarations or functions
+// - may increase the performance of the code as computation is done at compile time
+//
+// When to use const and when constexpr?
+// - Initialization of a const variable can be deferred until runtime;
+//   constexpr variable must be initialized at compile time
+// - all constexpr variables are const but not the other way round
+// - use const to indicate the value cannot be modified.
+// - use constexpr to create expressions that can be evaluated at compile time such
+// as declarations and functions
 void constexpr_demo() {
     int n1, n2;
     n1 = n2 = 3;
@@ -116,6 +128,77 @@ void constexpr_demo() {
     // error: constexpr variable 'sum43' must be initialized by a constant expression
     // note: read of non-const variable 'n1' is not allowed in a constant expression
     // constexpr auto sum43 = S::sum_constexpr(n1, n2);
+}
+
+int get_square(int n) {
+    return n*n;
+}
+
+//
+// constexpr function
+//
+// Return value of this function is computed/evalueated at compile time =>
+//    its argument must be known/evalueted in compile time.
+// If functions returns a value that can be computed at compile time then such
+//    function can be a constexpr function.
+//
+// Such function must accept and return only literal types.
+// Literal types are types allowed in constant expressions:
+// - void
+// - scalar types (int, float, double, char)
+// - references
+// - arrays
+// - classes with constexpr constructors
+//
+// Should contain only a return statement. (only in C++11; not in C++14+)
+// constexpr functions are implicitly inline (will be defined in a header file)
+//
+constexpr int get_square2(int n) {
+    return n*n;
+}
+
+// We can have multiple statements in constexpr functions in C++14
+constexpr int min(int n1, int n2) {
+    if (n1 < n2) {
+        return n1;
+    }
+
+    return n2;
+}
+
+void constexpr_demo_2(){
+    int n1 = 1;
+    int arr1[n1];
+
+    // This const expression is evaluated in compile time.
+    // Not all const expressions are evaluated in compile time.
+    const int n2 = 2;
+    int arr2[n2];
+
+    // Some constants are initialized in run time.
+    const int square = get_square(n1);
+
+    // the value of n is computed at compile time
+    constexpr int n3 = 2;
+    // we can use n in expressions that expect compile-time constant e.g. array size
+    int arr3[n3];
+
+    // constexpr variable can be initialized only with constant expression.
+    // error: call to non-constexpr function ‘int declarations_demo::get_square(int)’
+    // constexpr int square2 = get_square(n1);
+
+    // error: the value of ‘n1’ is not usable in a constant expression
+    // constexpr int square2 = get_square2(n1);
+
+    constexpr int square2 = get_square2(5);
+
+    // constexpr function can be used to initialize non-const variables.
+    // Here it behaves as a normal function - it's executed in runtime and its return
+    // value is computed in runtime.
+    int n4 = get_square2(5);
+
+    int n5 = min(3, 5);
+    assert(n5 == 3);
 }
 
 void factorial_demo() {
@@ -607,16 +690,17 @@ void move_semantics_demo() {
 
 void run(){
     std::cout << "\n\n ***** declarations_demo::run() ***** \n\n" << std::endl;
-    auto_demo();
-    const_demo();
-    const_with_ptrs_and_refs_demo();
-    constexpr_demo();
-    factorial_demo();
-    fibonacci_demo();
-    namespace_demo();
-    lvalues_rvalues_demo();
-    rvalue_reference_demo();
-    move_semantics_demo();
+    // auto_demo();
+    // const_demo();
+    // const_with_ptrs_and_refs_demo();
+    // constexpr_demo();
+    constexpr_demo_2();
+    // factorial_demo();
+    // fibonacci_demo();
+    // namespace_demo();
+    // lvalues_rvalues_demo();
+    // rvalue_reference_demo();
+    // move_semantics_demo();
 }
 
 }

@@ -16,6 +16,7 @@
 #include <statements_demo.hpp>
 #include <static_demo.hpp>
 #include <strings_demo.hpp>
+#include <string_streams_demo.hpp>
 #include <type_conversions_demo.hpp>
 #include <utility_demo.hpp>
 
@@ -26,7 +27,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    strings_demo::run();
+    declarations_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
@@ -44,6 +45,8 @@ int main(int argc, char const *argv[]) {
     smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
+    strings_demo::run();
+    string_streams_demo::run();
     type_conversions_demo::run();
     utility_demo::run();
   }

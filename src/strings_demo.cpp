@@ -251,6 +251,43 @@ void test_string_conversion_functions(){
     std::cout << "Original = " << s4 << "; ToLower = " << ToLower(s4) << std::endl;
 }
 
+enum class Case { SENSITIVE, INSENSITIVE };
+
+// return position of the first character of the substring, else std::string::npos
+size_t Find (
+    const std::string &source,           // Source string to be searched
+    const std::string &search_string,    // The string to search for
+    Case searchCase = Case::INSENSITIVE, // Choose case sensitive/insensitive search
+    size_t offset = 0 ) {                // Start the search from this offset
+    if (searchCase == Case::SENSITIVE) {
+        return source.find(search_string, offset);
+    }
+
+    auto sourceInLower = ToLower(source);
+    auto searchStringInLower = ToLower(search_string);
+    return sourceInLower.find(searchStringInLower, offset);
+}
+
+void test_find() {
+    using namespace std::string_literals;
+    auto s = "This is some SENtence"s;
+    auto subStr = "sentence"s;
+
+    auto i = Find(s, subStr);
+    if (i == std::string::npos) {
+        std::cout << "String \"" << s << "\" does not contain substring \"" << subStr << "\" when using case insensitive search." << std::endl;
+    } else {
+        std::cout << "String \"" << s << "\" does contain substring \"" << subStr << "\" at posistion " << i << " when using case insensitive search." << std::endl;
+    }
+
+    i = Find(s, subStr, Case::SENSITIVE);
+    if (i == std::string::npos) {
+        std::cout << "String \"" << s << "\" does not contain substring \"" << subStr << "\" when using case sensitive search." << std::endl;
+    } else {
+        std::cout << "String \"" << s << "\" does contain substring \"" << subStr << "\" at posistion " << i << " when using case sensitive search." << std::endl;
+    }
+}
+
 } // namespace std_string_demo
 
 void run() {
@@ -260,6 +297,7 @@ void run() {
     std_string_demo::demo();
     std_string_demo::std_string_combine_demo();
     std_string_demo::test_string_conversion_functions();
+    std_string_demo::test_find();
 }
 
 }
