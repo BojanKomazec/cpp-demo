@@ -96,9 +96,11 @@ enum TrafficLight {
 //
 // Enumerators are declared only within the scope.
 // Enumerators's scope has to be resolved.
-// Coped enumerators can't be implicitly converted to int.
+// Scoped enumerators can't be implicitly converted to int.
 // int is default underlying type.
 // Scoped Enumerator Types are preferred over regular ones.
+// Scoped enums do not pollute global namespace with enumerator names.
+// They increase readability of the code.
 enum class TrafficLight2 {
     RED,
     GREEN,

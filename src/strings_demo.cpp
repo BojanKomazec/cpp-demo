@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace strings_demo {
 
@@ -288,16 +289,53 @@ void test_find() {
     }
 }
 
+// Add one more function called FindAll, that returns the starting indices of all the found substrings in a target string.
+// Return the indices in a vector. Support case sensitive/insensitive search.
+// Return indices of found strings, else an empty vector.
+std::vector<int>
+FindAll(
+    const std::string &target,         //Target string to be searched
+    std::string search_string,         //The string to search for
+    Case searchCase = Case::INSENSITIVE,//Choose case sensitive/insensitive search
+    size_t offset = 0) {                //Start the search from this offset
+
+    std::vector<int> indices;
+
+    auto localOffset = offset;
+    while(true) {
+        auto indexFound = Find(target, search_string, searchCase, localOffset);
+        if (indexFound == std::string::npos) {
+            break;
+        } else {
+            indices.push_back(static_cast<int>(indexFound));
+            localOffset = indexFound + 1;
+        }
+    }
+
+    return indices;
+}
+
+void test_FindAll() {
+    std::cout << "test_FindAll()" << std::endl;
+    std::string source{"abcdefabcdeabababcdddabc"};
+    auto indices = FindAll(source, "ABC", Case::INSENSITIVE, 0);
+    for(auto i : indices) {
+        std::cout << i << std::endl;
+    }
+}
+
+
 } // namespace std_string_demo
 
 void run() {
     std::cout << "strings_demo()" << std::endl;
-    c_strings_demo::show_problems();
-    string_literal_concatenation_demo();
-    std_string_demo::demo();
-    std_string_demo::std_string_combine_demo();
-    std_string_demo::test_string_conversion_functions();
-    std_string_demo::test_find();
+    // c_strings_demo::show_problems();
+    // string_literal_concatenation_demo();
+    // std_string_demo::demo();
+    // std_string_demo::std_string_combine_demo();
+    // std_string_demo::test_string_conversion_functions();
+    // std_string_demo::test_find();
+    std_string_demo::test_FindAll();
 }
 
 }
