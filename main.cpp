@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    strings_demo::run();
+    class_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();

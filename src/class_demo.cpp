@@ -1,6 +1,7 @@
 #include <class_demo.hpp>
 #include <iostream>
 #include <cassert>
+#include <typeinfo>
 
 namespace class_demo {
 
@@ -708,15 +709,877 @@ void demo(){
 
 }
 
+//
+// OOP
+//
+// System is made up of objects.
+// Object is instance of a class.
+// Classes and objects are related.
+// Collaboration between objects defines the behaviour of the system.
+// Relationship types: composition, inheritance
+//
+// Composition
+//
+// This is a relation between objects (not classes).
+// Object composed in another object.
+// Represents "has a" relation.
+// Owner object reuses functionality of the part.
+// e.g. Car has an engine
+//
+// Inheritance
+//
+// This is a relationship between classes.
+// Allows (child) class to inherit and reuse features of another (parent) class.
+// "is a" relationship.
+// E.g. Animal class has behaviour eat(), sleep(), run() and Dog and Car inherit from Animal class
+// Syntax: class Child : <optional_access_modifier> Parent
+//
+// Access Modifiers
+//
+// private - accessible only from withing that class
+// protected - acessible also from a child class
+// public - accessible by any other place
+//
+// Accessibility depends on the type of inheritance.
+//
+// For public inheritance: (parent -> child)
+// private -> private (not accessible in child class)
+// public -> public
+// protected -> protected
+//
+// For private inheritance: (parent -> child)
+// private -> private (not accessible in child class)
+// public -> private (accessible in child class but not outside it)
+// protected -> private (accessible in child class but not outside it)
+//
+// For protected inheritance: (parent -> child)
+// private -> private (not accessible in child class)
+// public -> protected (accessible in child class and its children)
+// protected -> protected (accessible in child class and its children)
+//
+// If inheritance access modifier is not specified the default one is used and it depends on the child type. If child is:
+// struct => public inheritance
+// class => private inheritance
+//
+// Object construction
+//
+// Constructors execute from parent to child.
+// Destructors executed from child to parent.
+// Base data members will be part of child object.
+//
+//
+// In C++ there are 3 member functions that are not inherited:
+// - constructors
+// - destructors
+// - assignment operator
+//
+// Inheriting Constructors (C++11)
+// - child class can inherit parent's constructor so we don't need manually to implement child's constructor.
+// - compiler implicitly implements child class c-tors which call the base class c-tors.
+// - This prevents repeating the same code - e.g. the one which assigns all c-tor args to data members.
+//   Also this prevents compiler forcing us to implement child class c-tor which only calls base class c-tor.
+// - This can't be used if child class has its own data member which has to be initialized in c-tor (but can be used if
+//   we can initialize it outside the constructor).
+//
+//
+// Polymorphism
+//
+// - Different forms of the function are provided.
+// - The call is resolved at compile time or runtime.
+// - Compile time polymorphism:
+//      - Compiler has enough info in compile time to decide which function shall be called.
+//      - Examples: function overloading, operator overloading, templates.
+// - Runtime polymorphism (dynamic binding):
+//      - Function to be invoked is decided in runtime
+//      - Implemented through virtual mechanism.
+//      - Compiler inserts code to invoke the correct function at runtime.
+//      - Automatically generated through the 'virtual' keyword when declaring functions.
+//      - Such functions are called polymorphic functions.
+//      - Shold be invoked only through pointer or reference.
+//
+//
+//  Virtual mechanism (Vtable and Vptr)
+//
+// - When compiler compiles class functions, it creates an array of functions pointers - a virutal table.
+//   It contains only pointers to virtual functions.
+// - Non-virtual functions don't appear in Vtable. They are always called on the class where thery are defined.
+//   E.g. if fn1, fn2 and fn3 are virtual in Base class we'll have:
+//      &Base::fn1
+//      &Base::fn2
+//      &Base::fn3
+// - Starting address of this array (Vtable) is stored in a special class member variable called virtual pointer, Vptr.
+// - Virtual pointer is a member variable of a class and is stored with other attributes in the object.
+// - Compiler automatically adds Vptr to base class which has virtual function members. This increaases the size of the
+//   class by the size of the pointer (4 bytes on 32-bit machines, 8 bytes on 64-bit machines).
+// - Compiler automatically adds to its child classes both Vtable and Vptr.
+// - Their Vptrs are pointing to their own Vtables.
+// - Their Vtable is updated so it contains correct function addresses. If that function is overriden in this class, that
+//   address will be set. If not, that would be the address of the function in the first parent class where this function
+//   is overridden.
+// - E.g. if Child class overrides fn1 and fn3 but not fn2:
+//      &Child::fn1
+//      &Base::fn2
+//      &Child::fn3
+// - What happens if we call virtual method on a child class?:
+//      Base* p = &child; p->fn1();
+// 1) Get the object address (&child)
+// 2) Get the Vptr
+// 3) Find the position of the function (fn1) in Vtable
+// 4) Get the address of a function
+// 5) Invoke the function
+//
+// - If class has not virtual member functions, that means that its author didn't make any provision for its behavior to be customized.
+namespace oop_demo {
+
+class Animal {
+public:
+    void eat() {
+        std::cout << "Animal::eat()" << std::endl;
+    }
+    void run() {
+        std::cout << "Animal::run()" << std::endl;
+    }
+    void speak() {
+        std::cout << "Animal::speak()" << std::endl;
+    }
+};
+
+class Dog : public Animal {
+
+};
+
+// Dog actually has some specific behaviour.
+// When the child class reimplements function with the same name from the base class, these implementations will hide base implementation.
+class Dog2 : public Animal {
+public:
+    void eat() {
+        std::cout << "Dog2::eat()" << std::endl;
+    }
+    void speak() {
+        std::cout << "Dog2::speak()" << std::endl;
+    }
+};
+
+void demo() {
+    Dog dog;
+    dog.eat();
+    dog.run();
+    dog.speak();
+
+    Dog2 dog2;
+    dog2.eat();
+    dog2.run();
+    dog2.speak();
+}
+
+class Account {
+    std::string name_;
+    int id_;
+    // error: ISO C++ forbids in-class initialization of non-const static member ‘class_demo::oop_demo::Account::id_generator_’
+    // static int id_generator_ = 0;
+    static int id_generator_;
+protected:
+    float balance_{0.0f};
+public:
+    Account(const std::string& name, float balance):name_(name), balance_(balance){
+        id_ = ++Account::id_generator_;
+        std::cout << "Account::Account()" << std::endl;
+    }
+
+    virtual ~Account(){
+        std::cout << "Account::~Account()" << std::endl;
+    }
+
+    std::string get_name() const {
+        return name_;
+    }
+
+    float get_balance() const {
+        return balance_;
+    }
+
+    int get_id() const {
+        return id_;
+    }
+
+    // Functions that are meant to be overriden in child classes are declared as virtual:
+
+    virtual float get_interest_rate() const {
+        return 0.0f;
+    }
+
+    virtual void accumulate_interest(){
+    }
+
+    virtual void withdraw(float amount){
+        if (amount < balance_) {
+            balance_ -= amount;
+        } else {
+            std::cout << "Insufficient balance." << std::endl;
+        }
+    }
+
+    virtual void deposit(float amount){
+        balance_ += amount;
+    }
+};
+
+// error: ‘static’ may not be used when defining (as opposed to declaring) a static data member [-fpermissive]
+// static int Account::id_generator_ = 0;
+int Account::id_generator_ = 0;
+
+class Savings : public Account {
+    float rate_;
+public:
+    // If we don't call base class c-tor explicitly, compiler will do it by calling its default c-tor (which in our case does not exist):
+    // error: no matching function for call to ‘class_demo::oop_demo::Account::Account()’
+    // Savings(const std::string& name, float balance, float rate):rate_(rate){}
+
+    Savings(const std::string& name, float balance, float rate) : Account(name, balance), rate_(rate){
+        std::cout << "Savings::Savings()" << std::endl;
+    }
+
+    ~Savings(){
+        std::cout << "Savings::~Savings()" << std::endl;
+    }
+
+    void accumulate_interest() override {
+        balance_ += (rate_ * balance_);
+    }
+
+    float get_interest_rate() const override {
+        return rate_;
+    }
+};
+
+class Checking : public Account {
+    const static int minimum_balance = 50;
+public:
+    // Problem: Compiler forces us to implement child class c-tor just to call base class c-tor.
+    // This c-tor is valid but we'll use C++11 Inheriting Constructor
+    // Checking(const std::string& name, float balance) : Account(name, balance_){}
+    // C++11 Inheriting Constructor
+    using Account::Account;
+
+    ~Checking(){
+    }
+
+    void withdraw(float amount) override {
+        if (balance_ - amount >= minimum_balance) {
+            // Use scope resolution in order to call base class function from child class function.
+            Account::withdraw(amount);
+        } else {
+            std::cout << "Balance would go under the threshold." << std::endl;
+        }
+    }
+};
+
+class Checking2 : public Account {
+    float minimum_balance_;
+public:
+    Checking2(const std::string& name, float balance, float min_balance) : Account(name, balance), minimum_balance_(min_balance) {
+
+    }
+
+    ~Checking2(){
+    }
+
+    void withdraw(float amount) override {
+        if (balance_ - amount >= minimum_balance_) {
+            // Use scope resolution in order to call base class function from child class function.
+            Account::withdraw(amount);
+        } else {
+            std::cout << "Balance would go under the threshold." << std::endl;
+        }
+    }
+
+    float get_minimum_balance() const {
+        return minimum_balance_;
+    }
+};
+
+// This function/module is tightly coupled with Checking account.
+// To perform the same transactions on other type of account, we'd need to write another function.
+void perform_transactions(Checking* pAcc) {
+    std::cout << "perform_transactions()" << std::endl;
+    std::cout << "Initial balance = " << pAcc->get_balance() << std::endl;
+    pAcc->deposit(100);
+    pAcc->accumulate_interest();
+    pAcc->withdraw(170);
+    std::cout << "Interest rate = " << pAcc->get_interest_rate() << std::endl;
+    std::cout << "Final balance = " << pAcc->get_balance() << std::endl;
+}
+
+// Pointer to or reference to base class can be assigned a pointer or reference to its child classes.
+// This function/module knows only about base class, no child classes.
+// This function demonstrates Polymorphism - when a message is sent to an object that represents different objects.
+// Messages is passed to correct object. Code which uses polymorphism does not need to know the actual object on which
+// functions will be called. This function would work without changing anything in it on any classes inherited from Account
+// if we introduce them in future.
+void perform_transactions2(Account* pAcc) {
+    std::cout << "perform_transactions()" << std::endl;
+    std::cout << "Initial balance = " << pAcc->get_balance() << std::endl;
+
+    // To tell the compiler to call these functions not on the Account base object but on the actual children objects,
+    // we need to mark them somehow: we need to use 'virtual' keyword.
+    // This will actually allow child classes to override base class behaviour.
+    pAcc->deposit(100);
+    pAcc->accumulate_interest();
+    pAcc->withdraw(170);
+
+    std::cout << "Interest rate = " << pAcc->get_interest_rate() << std::endl;
+    std::cout << "Final balance = " << pAcc->get_balance() << std::endl;
+}
+
+void demo_account() {
+    Account acc("Bojan", 50);
+    acc.deposit(100);
+    acc.withdraw(30);
+
+    Checking checking("Bojan", 100);
+    checking.withdraw(51);
+    perform_transactions(&checking);
+    perform_transactions2(&checking);
+
+    Savings savings("Bojan", 100, 0.05f);
+    perform_transactions2(&savings);
+    // Before marking Account class members as virtual, the output was:
+    // perform_transactions()
+    // Initial balance = 100
+    // Interest rate = 0
+    // Final balance = 30
+}
+
+void demo_virtual_destructors() {
+    {
+        Savings acc("Bojan", 100, 0.05f);
+        perform_transactions2(&acc);
+
+        // If we temporarily remove keyword virtual from all member functions of Account class the output is: 40
+        // If we return keyword virtual to all member functions of Account class the output is: 48
+        // This is because the size of Vptr is 8 bytes (on 64-bit platform).
+        std::cout << "sizeof(Account) = " << sizeof(Account) << std::endl;
+
+        // Both d-tors are called:
+        // Savings::~Savings()
+        // Account::~Account()
+    }
+
+    {
+        // Before running this code remove keyword virtual from Account::~Account().
+
+        Account* pAcc = new Savings("Bojan", 100, 0.05f);
+        perform_transactions2(pAcc);
+        delete pAcc;
+
+        // problem:
+        // Only Account::~Account() is called (because type of pAcc is pointer to Account).
+        // Savings::~Savings() is not called!
+        // We need to make Account::~Account() virtual!
+        // Base class has to have a destructor declared as virtual!
+        // Without a virtual destructor, the destructors of child will not execute if a pointer of base is deleted.
+    }
+}
+
+// final (C++11)
+// - Used to declare classes which cannot not be inherited.
+class MyClass final {
+public:
+    MyClass(){}
+    ~MyClass(){
+        // release resources
+    }
+    void Foo1(const std::string& fileName) {}
+    void Foo2(const std::string& fileName){}
+    void Foo3(){}
+};
+
+//  error: cannot derive from ‘final’ base ‘class_demo::oop_demo::MyClass’ in derived type ‘class_demo::oop_demo::MyChildClass’
+// class MyChildClass : public MyClass {};
+
+class MyClass2 {
+public:
+    virtual void Foo1(float version){
+        std::cout << "MyClass2::Foo1()" << std::endl;
+    }
+
+    virtual void Foo2(std::string arg){
+        std::cout << "MyClass2::Foo2()" << std::endl;
+    }
+
+    void Foo3(std::string arg){
+        std::cout << "MyClass2::Foo3()" << std::endl;
+    }
+
+    virtual void Foo4(std::string arg){
+        std::cout << "MyClass2::Foo4()" << std::endl;
+    }
+};
+
+class MyChildClass2 : public MyClass2 {
+public:
+    // Problem: We might make mistake with argument type and so this function is not overriding MyClass2::Foo1 as we intended
+    // (as it does not have the same signature)! Compiler can't catch this subtle mistake. Therefore C++11 introduced keyword 'override'.
+    void Foo1(int version){
+        std::cout << "MyChildClass2::Foo1()" << std::endl;
+    }
+
+    // error: ‘void class_demo::oop_demo::MyChildClass2::Foo2(int)’ marked ‘override’, but does not override void Foo2(int arg) override {...}
+    // void Foo2(int arg) override {
+    //     std::cout << "MyChildClass2::Foo2()" << std::endl;
+    // }
+
+    void Foo2(std::string arg) override {
+        std::cout << "MyChildClass2::Foo2()" << std::endl;
+    }
+
+    // It is not possible to override base function which is not declared as 'virtual'.
+    // error: ‘void class_demo::oop_demo::MyChildClass2::Foo3(std::__cxx11::string)’ marked ‘override’, but does not override void Foo3(std::string arg) override
+    // void Foo3(std::string arg) override {
+    //     std::cout << "MyChildClass2::Foo3()" << std::endl;
+    // }
+
+    // If we want to prevent that further inheritors to override this function, we can declared it as 'final'
+    void Foo4(std::string arg) override final {
+        std::cout << "MyChildClass2::Foo4()" << std::endl;
+    }
+};
+
+class MyGrandChildClass2 : public MyChildClass2 {
+public:
+    // We can't override function from parent class if that function was declared as 'final'.
+    //  error: overriding final function ‘virtual void class_demo::oop_demo::MyChildClass2::Foo4(std::__cxx11::string)’ void Foo4(std::string arg) override final
+    // void Foo4(std::string arg) override {
+    //     std::cout << "MyGrandChildClass2::Foo4()" << std::endl;
+    // }
+};
+
+void demo_overriding() {
+    MyChildClass2 myChildObject;
+    MyClass2& myClass = myChildObject;
+
+    // calls MyClass2::Serialize()
+    myClass.Foo1(3.14f);
+
+    // calls MyChildClass2::Foo2()
+    myClass.Foo2("test");
+}
+
+void demo_upcasting_downcasting() {
+    Checking checkAcc("Bojan", 100);
+
+    //
+    // Upcasting
+    //
+    // - we upcast a child class object to base class object
+    // - works automatically, no programmer's intervention is required
+    // - it works only with pointers and references
+    // - if pointers or references are not used => slicing
+    Account* pAccount = &checkAcc;
+
+    // It is not possible to assign pointer to base to pointer to child:
+    // error: invalid conversion from ‘class_demo::oop_demo::Account*’ to ‘class_demo::oop_demo::Checking*’ [-fpermissive]
+    // This makes sense as how can compiler know that pAccount points to some completely different child class e.g. Savings.
+    // Checking* pChecking = pAccount;
+
+    // But if we know that pAccount indeed points to Checking object, we can tell that to compiler:
+    //
+    // Downcasting
+    //
+    // - we downcasted base class pointer to a child class pointer
+    // - programmer's intervention required: explicit casting
+    Checking* pChecking = static_cast<Checking*>(pAccount);
+}
+
+void perform_transactions3(Account* pAcc) {
+    std::cout << "perform_transactions()" << std::endl;
+    std::cout << "Initial balance = " << pAcc->get_balance() << std::endl;
+
+    pAcc->deposit(100);
+    pAcc->accumulate_interest();
+    // problem: we're blindly downcasrting pointer to base to pointer to one of the child classes.
+    // If object is not of the assumed child class, we have undefined behaviour.
+    Checking2* pChecking2 = static_cast<Checking2*>(pAcc);
+    // we're calling a child class specific function on a downcasted pointer.
+    // If original object is not of this child class type we have an undefined behaviour.
+    std::cout << "Minimum balance of Checking2 account: " << pChecking2->get_minimum_balance() << std::endl;
+    // Ideally, we'd somehow check if pAcc points to Checking2 account
+
+    pAcc->withdraw(170);
+
+    std::cout << "Interest rate = " << pAcc->get_interest_rate() << std::endl;
+    std::cout << "Final balance = " << pAcc->get_balance() << std::endl;
+}
+
+void perform_transactions4(Account* pAcc) {
+    std::cout << "perform_transactions()" << std::endl;
+    std::cout << "Initial balance = " << pAcc->get_balance() << std::endl;
+
+    pAcc->deposit(100);
+    pAcc->accumulate_interest();
+
+    // Using RTTI to determine the type of the underlying object:
+    if (typeid(*pAcc) == typeid(Checking2)) {
+        Checking2* pChecking2 = static_cast<Checking2*>(pAcc);
+        std::cout << "Minimum balance of Checking2 account: " << pChecking2->get_minimum_balance() << std::endl;
+    }
+
+    // The same can be achieved with dynamic_cast<T>:
+    Checking2* pChecking2 = dynamic_cast<Checking2*>(pAcc);
+    if (pChecking2 != nullptr) {
+        std::cout << "Minimum balance of Checking2 account: " << pChecking2->get_minimum_balance() << std::endl;
+    }
+
+    pAcc->withdraw(170);
+
+    std::cout << "Interest rate = " << pAcc->get_interest_rate() << std::endl;
+    std::cout << "Final balance = " << pAcc->get_balance() << std::endl;
+}
+
+//
+// typeid
+//
+// - when used on non-polymorphic types, it gathers type information in compile-time
+// - when used on polymorphic types, it will work in runtime
+// - it makes sense to use it only for polymorphic types
+//
+// Ideally we should avoid using RTTI and dynamic_cast.
+// For these to work compiler has to add extra information to polymorphic types.
+// Compiler creates type_info object which contains type info and is stored along Vtable.
+// typeid and dynamic_cast use this object to get information.
+// dynamic_cast is slower than typeid as it has to go through class hierarchy in order to determine if conversion is possible.
+// Avoid RTTI and rely on polymorphism.
+void demo_RTTI(){
+    Checking2 checkAcc("Bojan", 100, 50);
+    perform_transactions3(&checkAcc);
+    // Minimum balance of Checking2 account: 50
+
+    Savings savAcc("Bojan - Savings", 145, 0.05f);
+    perform_transactions3(&savAcc);
+    // problem: this outputs:
+    // Minimum balance of Checking2 account: 0.05
+    // This is wrong output and we're lucky we didn't get crash here!
+
+    int n{};
+    float f{};
+    const std::type_info& ti = typeid(n);
+    std::cout << "Type name = " << ti.name() << std::endl;
+    std::cout << "Type name = " << typeid(f).name() << std::endl;
+    std::cout << "Type name = " << typeid(savAcc).name() << std::endl;
+
+    Savings* pSavings = &savAcc;
+    std::cout << "Type name = " << typeid(pSavings).name() << std::endl;
+    std::cout << "Type name = " << typeid(*pSavings).name() << std::endl;
+
+    Account* pAcccount = &savAcc;
+    if (typeid(*pAcccount) == typeid(Savings)) {
+        std::cout << "pAccount points to Savings object" << std::endl;
+    } else {
+        std::cout << "pAccount does not point to Savings object" << std::endl;
+    }
+
+// Type name = i
+// Type name = f
+// Type name = N10class_demo8oop_demo7SavingsE
+// Type name = PN10class_demo8oop_demo7SavingsE
+
+    perform_transactions4(&checkAcc);
+    perform_transactions4(&savAcc);
+}
+
+class Document {
+public:
+    virtual void Serialize(float version) {
+        std::cout << "Document::Serialize()" << std::endl;
+    }
+};
+
+class Text : public Document {
+public:
+    void Serialize(float version) override final {
+        std::cout << "Text::Serialize()" << std::endl;
+    }
+};
+
+class RichText : public Text {
+public:
+    // cannot override as function is final in parent
+    // void Serialize(float version) override final {
+    //     std::cout << "RichText::Serialize()" << std::endl;
+    // }
+};
+
+class XML : public Document {
+public:
+    // we don't override Document's Serialize() function
+};
+
+void Write(Document* pDoc) {
+    pDoc->Serialize(1.1f);
+}
+
+// Problem solution: making base class abstract.
+// Class is abstract if has at least one pure virtual function or if inherits from abstract class and it
+// does not override at least one inherited pure virtual function.
+// Abstract class:
+// - can't be instantiated but pointers or references to it can.
+// - can contain data, non-virtual functions...
+// - establishes a contract with clients - like interface in C#, TypeScript or Go language
+// - used for creatng interfaces.
+//   Interface contains only pure virtual functions and no other members.
+// Pure function:
+// - virtual function marked with pure specifier (=0)
+// - usually does not have an implementation (but it can have it)
+// - cannot be invoked but if it has an implementation, it can be invoked only from derived classes.
+// - they don't have an entry in Vtable but will define the layout of the functions in the Vtable of child classes.
+// - must be overriden in derived classes. If not derived,derived class will also be an abstract one.
+class Document2 {
+public:
+    // Pure virtual function.
+    virtual void Serialize(float version) = 0;
+};
+
+class Text2 : public Document2 {
+public:
+    void Serialize(float version) override final {
+        std::cout << "Text2::Serialize()" << std::endl;
+    }
+};
+
+class RichText2 : public Text2 {
+public:
+    // cannot override as function is final in parent
+    // void Serialize(float version) override final {
+    //     std::cout << "RichText::Serialize()" << std::endl;
+    // }
+};
+
+class XML2 : public Document2 {
+public:
+    // If we don't override Document2's Serialize() function
+    // this class would also be abstract and trying to create an instance of it
+    //      XML2 xml2;
+    // would render the following compiler error:
+    //      error: cannot declare variable ‘xml2’ to be of abstract type ‘class_demo::oop_demo::XML2’
+
+    void Serialize(float version) override {
+        std::cout << "XML2::Serialize()" << std::endl;
+    }
+};
+
+void Write2(Document2* pDoc) {
+    pDoc->Serialize(1.1f);
+}
+
+void demo_abstract_class(){
+    Text t;
+    Document& doc = t;
+    doc.Serialize(1.2f);
+    // output: Text::Serialize()
+
+    XML xml;
+    Write(&xml);
+    // output: Document::Serialize()
+    // Problem: child classes of Document are not forced to override Serialize()
+    // Consequence: some child classes will not override it and clients which are
+    // calling Serialize() on child classes will not be aware that default implementation
+    // (from base class) is being used, which is wrong.
+    // Solution: abstract class
+
+    XML2 xml2;
+    Write2(&xml2);
+    // output: XML2::Serialize()
+}
+
+class Stream {
+    std::string fileName_;
+public:
+    Stream(const std::string& fileName) : fileName_(fileName){
+        std::cout << "Stream::Stream(const std::string& fileName)" << std::endl;
+    }
+    const std::string& GetFileName() const {
+        return fileName_;
+    }
+    ~Stream() {
+        std::cout << "Stream::~Stream()" << std::endl;
+    }
+};
+
+class OutputStream : public Stream {
+    std::ostream& out_;
+public:
+    OutputStream(std::ostream& out, const std::string& fileName): out_(out), Stream(fileName){
+        std::cout << "OutputStream::OutputStream(...)" << std::endl;
+    }
+    std::ostream& operator<<(const std::string& data) {
+        out_ << data;
+        return out_;
+    }
+    ~OutputStream() {
+        std::cout << "OutputStream::~OutputStream()" << std::endl;
+    }
+};
+
+class InputStream : public Stream {
+    std::istream& in_;
+public:
+    InputStream(std::istream& in, const std::string& fileName): in_(in), Stream(fileName){
+        std::cout << "InputStream::InputStream(...)" << std::endl;
+    }
+    std::istream& operator>>(std::string& data) {
+        in_ >> data;
+        return in_;
+    }
+    ~InputStream() {
+        std::cout << "InputStream::~InputStream()" << std::endl;
+    }
+};
+
+class IOStream : public OutputStream, public InputStream {
+public:
+    IOStream(const std::string& fileName): OutputStream(std::cout, fileName), InputStream(std::cin, fileName) {
+        std::cout << "IOStream::IOStream(...)" << std::endl;
+    }
+    ~IOStream() {
+        std::cout << "IOStream::~IOStream()" << std::endl;
+    }
+};
+
+// OutputStream2 virtually inherits Stream means that
+// Vptr is added to OutputStream2 instance and it points to Stream.
+class OutputStream2 : virtual public Stream {
+    std::ostream& out_;
+public:
+    OutputStream2(std::ostream& out, const std::string& fileName): out_(out), Stream(fileName){
+        std::cout << "OutputStream2::OutputStream2(...)" << std::endl;
+    }
+    std::ostream& operator<<(const std::string& data) {
+        out_ << data;
+        return out_;
+    }
+    ~OutputStream2() {
+        std::cout << "OutputStream2::~OutputStream2()" << std::endl;
+    }
+};
+
+// InputStream2 virtually inherits Stream means that
+// Vptr is added to InputStream2 instance and it points to Stream.
+class InputStream2 : virtual public Stream {
+    std::istream& in_;
+public:
+    InputStream2(std::istream& in, const std::string& fileName): in_(in), Stream(fileName){
+        std::cout << "InputStream2::InputStream2(...)" << std::endl;
+    }
+    std::istream& operator>>(std::string& data) {
+        in_ >> data;
+        return in_;
+    }
+    ~InputStream2() {
+        std::cout << "InputStream2::~InputStream2()" << std::endl;
+    }
+};
+
+// IOStream2 will contain an instance of OutputStream2 and InputStream2 and each of them will have
+// Vptr pointint to the same Stream object.
+// To get a single instance of Stream, compiler needs to call its c-tor from most derived class, IOStream2.
+// OutputStream2 and InputStream2 c-tors will not be invoking Stream c-tor.
+class IOStream2 : public OutputStream2, public InputStream2 {
+public:
+    // As IOStream2 inherits from two classes which virtually inherit Stream, this means IOStream2 will be directly
+    // be responsible for constructing Stream class.
+    // If we don't explicitily invoke Stream's parametrized c-tor, IOStream2 will implicitly invoke its default c-tor.
+    // It is not available in our case and therefore we'd get an error:
+    // error: no matching function for call to ‘class_demo::oop_demo::Stream::Stream()’
+    // IOStream2(const std::string& fileName): OutputStream2(std::cout, fileName), InputStream2(std::cin, fileName) {
+    //     std::cout << "IOStream2::IOStream2(...)" << std::endl;
+    // }
+    // Solution: explicitily invoke Stream's parametrized c-tor
+    IOStream2(const std::string& fileName): OutputStream2(std::cout, fileName), InputStream2(std::cin, fileName), Stream(fileName) {
+        std::cout << "IOStream2::IOStream2(...)" << std::endl;
+    }
+    ~IOStream2() {
+        std::cout << "IOStream2::~IOStream2()" << std::endl;
+    }
+};
+
+//
+// Multiple Inheritance
+//
+// Class can inherit from multiple classes.
+// Useful when class wants to inherit/use multiple behaviours.
+// It can lead to Diamond Inheritance - when parent classes inherit the same parent
+// thus forming a diamond shape in inheritance graph.
+// E.g. InputStream and OutputStream inherit Stream and then IOStream inherits both InputStream and OutputStream.
+// In the IOStream object there will be two instances of Stream.
+//
+void multiple_inheritance_demo() {
+    IOStream iostream("test.txt");
+    // Output (note the problem: Stream c-tor is invoked twice):
+    //
+    // Stream::Stream(const std::string& fileName)
+    // OutputStream::OutputStream(...)
+    // Stream::Stream(const std::string& fileName)
+    // InputStream::InputStream(...)
+    // IOStream::IOStream(...)
+    // IOStream::~IOStream()
+    // InputStream::~InputStream()
+    // Stream::~Stream()
+    // OutputStream::~OutputStream()
+    // Stream::~Stream()
+}
+
+//
+void multiple_inheritance_demo2() {
+    IOStream iostream("test.txt");
+    std::string data;
+    iostream >> data;
+    iostream << data;
+
+    // Problem: Compiler does not know on which of 2 inherited instances of Stream to call the function:
+    // error: request for member ‘GetFileName’ is ambiguous
+    // iostream << iostream.GetFileName() << std::endl;
+    // Solution: make sure there is only one instance of Stream in IOStream (by using Virtual Inheritance)
+}
+
+void multiple_inheritance_solution_demo(){
+    IOStream2 iostream("test.txt");
+    iostream << iostream.GetFileName() << std::endl;
+    //
+    //  Output: note that Stream is constructed only once and that GetFileName() call is not ambiguous anymore.
+    //
+    // Stream::Stream(const std::string& fileName)
+    // OutputStream2::OutputStream2(...)
+    // InputStream2::InputStream2(...)
+    // IOStream2::IOStream2(...)
+    // test.txt
+    // IOStream2::~IOStream2()
+    // InputStream2::~InputStream2()
+    // OutputStream2::~OutputStream2()
+    // Stream::~Stream()
+}
+
+
+} // namespace oop_demo
+
+
 void run() {
     std::cout << "\n\n ***** class_demo::run() ***** \n\n" << std::endl;
-    class_demo();
-    struct_demo();
-    copy_constructor_demo();
-    delegating_constructors_demo();
-    default_and_deleted_member_functions_demo();
-    friend_demo();
-    initialization_vs_assignment::demo();
+    // class_demo();
+    // struct_demo();
+    // copy_constructor_demo();
+    // delegating_constructors_demo();
+    // default_and_deleted_member_functions_demo();
+    // friend_demo();
+    // initialization_vs_assignment::demo();
+    // oop_demo::demo();
+    // oop_demo::demo_account();
+    // oop_demo::demo_virtual_destructors();
+    // oop_demo::demo_overriding();
+    // oop_demo::demo_RTTI();
+    // oop_demo::demo_abstract_class();
+    // oop_demo::multiple_inheritance_demo();
+    // oop_demo::multiple_inheritance_demo2();
+    oop_demo::multiple_inheritance_solution_demo();
 }
 
 }
