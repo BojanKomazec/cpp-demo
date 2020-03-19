@@ -1558,7 +1558,6 @@ void multiple_inheritance_solution_demo(){
     // Stream::~Stream()
 }
 
-
 } // namespace oop_demo
 
 

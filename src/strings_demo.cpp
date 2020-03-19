@@ -324,6 +324,11 @@ void test_FindAll() {
     }
 }
 
+void escape_characters_demo() {
+    std::string fileName{"c:\dir1\new_dir\this_is_a_file"}
+    std::cout << fileName << std::endl;
+}
+
 
 } // namespace std_string_demo
 
@@ -335,7 +340,8 @@ void run() {
     // std_string_demo::std_string_combine_demo();
     // std_string_demo::test_string_conversion_functions();
     // std_string_demo::test_find();
-    std_string_demo::test_FindAll();
+    // std_string_demo::test_FindAll();
+    std_string_demo::escape_characters_demo();
 }
 
 }

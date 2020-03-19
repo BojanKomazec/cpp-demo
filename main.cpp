@@ -4,6 +4,7 @@
 #include <declarations_demo.hpp>
 #include <dynamic_memory_management_demo.hpp>
 #include <enum_demo.hpp>
+#include <exceptions_demo.hpp>
 #include <functions_demo.hpp>
 #include <initialization_demo.hpp>
 #include <lambda_demo.hpp>
@@ -28,7 +29,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    class_demo::run();
+    exceptions_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
