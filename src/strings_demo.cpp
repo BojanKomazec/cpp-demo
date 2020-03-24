@@ -324,9 +324,37 @@ void test_FindAll() {
     }
 }
 
-void escape_characters_demo() {
-    std::string fileName{"c:\dir1\new_dir\this_is_a_file"}
+// https://en.cppreference.com/w/cpp/language/string_literal
+// A raw string literal is a string in which the escape characters (like \n \t or \" ) of C++ are not processed.
+void raw_string_literals_demo() {
+    std::string fileName{"c:\dir1\new_dir\this_is_a_file"};
     std::cout << fileName << std::endl;
+    // Problem: output is not as expected:
+    //      c:dir1
+    //      ew_dir  his_is_a_file
+    // Solution: We need to prevent interpreting escape sequences like  \, \n (New Line), \t (TAB)
+    // by escaping backslash character like: "\\"
+    std::string fileName2{"c:\\dir1\\new_dir\\this_is_a_file"};
+    std::cout << fileName2 << std::endl;
+    // Output:
+    //      c:\dir1\new_dir\this_is_a_file
+
+    // Problem: if we have long string with many escape sequences escaping them manually would be tedious task.
+    // Solution: Raw String Literals (C++11)
+    std::string fileName3{R"(c:\dir1\new_dir\this_is_a_file)"};
+    std::cout << fileName3 << std::endl;
+    // Output:
+    //      c:\dir1\new_dir\this_is_a_file
+
+    // Problem: What if "( and )" sequence appears in string?
+    // error: missing terminating " character
+    // std::string fileName4{R"(Try "(this)" now.)"};
+    // Solution: using our custom delimiters - an array of up to 16 characters
+    std::string fileName4{R"MYDELIMITER(Try "(this)" now.)MYDELIMITER"};
+    std::cout << fileName4 << std::endl;
+    // Output:
+    //      Try "(this)" now.
+
 }
 
 
@@ -341,7 +369,7 @@ void run() {
     // std_string_demo::test_string_conversion_functions();
     // std_string_demo::test_find();
     // std_string_demo::test_FindAll();
-    std_string_demo::escape_characters_demo();
+    std_string_demo::raw_string_literals_demo();
 }
 
 }

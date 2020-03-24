@@ -32,7 +32,7 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 ```
 
-To check which C++ compiler will be used, open CMakeCache.txt and find lines like:
+To check which C++ compiler will be used, open `build/CMakeCache.txt` and find lines like:
 ```
 //CXX compiler
 CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
@@ -84,6 +84,45 @@ $ readlink /etc/alternatives/c++
 
 $ readlink /usr/bin/g++
 g++-7
+```
+
+Another example how to find the path to C++ compiler used:
+```
+//CXX compiler
+CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+```
+
+So let's follow symlinks:
+```
+~/dev/github/cpp-demo$ ls -la /usr/bin/c++
+lrwxrwxrwx 1 root root 21 Mar 28  2019 /usr/bin/c++ -> /etc/alternatives/c++
+
+~/dev/github/cpp-demo$ ls -la /etc/alternatives/c++
+lrwxrwxrwx 1 root root 12 Mar 28  2019 /etc/alternatives/c++ -> /usr/bin/g++
+
+~/dev/github/cpp-demo$ ls -la /usr/bin/g++
+lrwxrwxrwx 1 root root 5 May 20  2019 /usr/bin/g++ -> g++-7
+
+~/dev/github/cpp-demo$ which g++-7
+/usr/bin/g++-7
+
+~/dev/github/cpp-demo$ ls -la /usr/bin/g++-7
+lrwxrwxrwx 1 root root 22 Dec  4 14:25 /usr/bin/g++-7 -> x86_64-linux-gnu-g++-7
+
+bojan@bobox:~/dev/github/cpp-demo$ which x86_64-linux-gnu-g++-7
+/usr/bin/x86_64-linux-gnu-g++-7
+
+~/dev/github/cpp-demo$ g++-7 --version
+g++-7 (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+bojan@bobox:~/dev/github/cpp-demo$ gcc --version
+gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
 Run:

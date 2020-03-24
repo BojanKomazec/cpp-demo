@@ -11,12 +11,13 @@ include_directories(include)
 file(GLOB SOURCES "src/*.cpp")
 
 add_executable(cpp-demo main.cpp ${SOURCES})
+target_link_libraries(${PROJECT_NAME} stdc++fs)
 
 # Add -O0 to remove optimizations when using gcc
 IF(CMAKE_COMPILER_IS_GNUCC)
     # set C++ standard
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++14")
-    # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++17")
+    # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++14")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++17")
 
     # disable compiler optimizations
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
@@ -24,7 +25,7 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 
     # Disable copy elision
     # Valid only if std < c++17 as from C++17, copy elision is guaranteed.
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-elide-constructors")
+    # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-elide-constructors")
 
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 #   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
