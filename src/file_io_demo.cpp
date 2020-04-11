@@ -1,12 +1,15 @@
 #include <file_io_demo.hpp>
-#include <iostream>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <cstring>
 
 // File I/O is supported via following classes:
-// - ofstream - output file stream for writing
-// - ifstream - input file stream for reading
+// - ofstream - output file stream, for writing; stream is an OUTPUT;
+//      - stream insertion operator << can be used for inserting data into it
+// - ifstream - input file stream, for reading; stream is an INPUT;
+//      - stream extraction operator >> can be used for extracting data into it
 // - fstream - file stream for both reading and writing
 //
 // - include <fstream> header
@@ -27,6 +30,7 @@
 //              fstream (file I/O)
 //              stringstream (buffer I/O)
 //
+// By default, C++ opens the files in text mode.
 // File opening modes:
 // - used when opening a file
 // - constants defined in std::ios_base class
@@ -85,9 +89,10 @@ void text_file_demo() {
 //
 // goodbit = no error;                         bool good() // use to check if operation has succeeded
 // badbit  = irrecoverable stream error;       bool bad()  // e.g. corrupted disk
-// failbit = I/O operation faild;              bool fail() [operator! is overloaded to check this flag]
+// failbit = I/O operation failed;             bool fail() [operator! is overloaded to check this flag]
 // eofbit  = end of file reached during input; bool eof()
 //
+// when no more characters can be read from a file eofbit and failbit are set to true, and goodbit is set to false
 void error_handling_demo(){
     {
         std::ifstream in{"not_existing_file.txt"};
@@ -184,7 +189,6 @@ void copyTextFileContentDemo(){
 
     inFileStream.close();
     outFileStream.close();
-
 }
 
 // Streams internalluy contain pointers which point to the location where will the next I/O action take place.
@@ -335,13 +339,187 @@ void write_read_char_demo(){
     }
 }
 
+struct record{
+    int id;
+    char name[10];
+};
+
+void binary_file_demo(){
+    std::ofstream textstream{"data.txt"};
+
+    // Stream insertion operator writes hex values of characters' ASCII codes
+    textstream << 1; // ASCII code: 49 (0x31)
+    textstream << "A"; // ASCII code: 65 (0x41)
+    textstream.close();
+
+    // $ xxd data.txt
+    // 00000000: 3141
+
+    //
+    // Writing to binary file:
+    //                                     1A
+
+    std::ofstream binstream{"data.bin", std::ios::binary};
+
+    // Stream insertion operator writes hex values of characters' ASCII codes
+    binstream << 1;
+    binstream << "A";
+
+    // write() function writes hex value of int variable (not ASCII codes of its characters!)
+    int n{1};
+    binstream.write((const char*)&n, sizeof(n)); // 4 bytes will be written: 00 00 00 01
+
+    // write() function writes hex value of ASCII code of char variable
+    char c{'A'};
+    binstream.write((const char*)&c, sizeof(c)); // 1 byte will be written
+
+    // Hex number is written "as is" - byte by byte.
+    // This is why binary files are more efficient in storing data.
+    unsigned int x{0xdeadbeef};
+    binstream.write((const char*)&x, sizeof(x)); // 4 bytes will be written
+
+    binstream.close();
+
+    // $ xxd data.bin
+    // 00000000: 3141 0100 0000 41ef bead de              1A....A....
+
+    // 00 00 00 01 is written as 01 00 00 00 because my Ubuntu is Little Endian
+    // (Least Significant Byte is storred at the lowest memory address):
+    // $  lscpu | grep "Byte Order"
+    // Byte Order:          Little Endian
+
+    // same for 0xdeadbeef, which is written as: ef be ad de
+
+    //
+    // Reading from binary file:
+    //
+
+    char ch0{0}; // as we inserted a single number, it was written as a character - its ASCII value so we need to read char, not int!
+    char ch1{0};
+    int n2{0};
+    char ch2{0};
+    unsigned int un1{0};
+
+    std::ifstream input{"data.bin"};
+    input.read((char*)&ch0, sizeof(ch0));
+    input.read((char*)&ch1, sizeof(ch1));
+    input.read((char*)&n2, sizeof(n2));
+    input.read((char*)&ch2, sizeof(ch2));
+    input.read((char*)&un1, sizeof(un1));
+
+    std::cout << "ch0 = " << ch0 << std::endl;
+    std::cout << "ch1 = " << ch1 << std::endl;
+    std::cout << "n2 = " << n2 << std::endl;
+    std::cout << "ch2 = " << ch2 << std::endl;
+    std::cout << std::hex << "un1 = " << un1 << std::endl;
+    std::cout << std::dec << std::endl;
+
+    // ch0 = 1
+    // ch1 = A
+    // n2 = 1
+    // ch2 = A
+    // un1 = deadbeef
+
+    //
+    // Writing structures to binary files
+    //
+    constexpr char fileName[] = "records.bin";
+    std::ofstream binstream2{fileName, std::ios::binary};
+    record r;
+    r.id = 1234;
+    strncpy((char*)&r.name, "Bojan", 10);
+    binstream2.write((const char*)&r, sizeof(r));
+    binstream2.close();
+
+    //
+    // Reading structures from binary files
+    //
+    // NOTE: when writing multiple instances of structure into binary file we first need to write their number
+    // so when reading it, we know how many times to read as binary files don't have EOF.
+
+    record r2;
+    std::ifstream input2{fileName};
+    input2.read((char*)&r2, sizeof(r2));
+    std::cout << "r.id = " << r.id << std::endl;
+    std::cout << "r.name = " << r.name << std::endl;
+    // r.id = 1234
+    // r.name = Bojan
+}
+
+// Function copies content of a binary source file into another, new file.
+//
+// Verification:
+//
+// /cpp-demo$ xxd demo.bin
+// 00000000: efbe adde                                ....
+//
+// /cpp-demo$ xxd "demo (copy).bin"
+// 00000000: efbe adde                                ....
+void copyBinaryFileContentDemo(){
+    using namespace std::filesystem;
+
+    // path to the current working directory
+    std::cout << "current_path() = " << current_path() << std::endl;
+
+    path pathSource(current_path());
+    // https://en.cppreference.com/w/cpp/filesystem/path/append
+    // /= operator inserts OS-specific separator ('/' in case of Unix)
+    pathSource /= "demo.bin";
+    std::cout << "pathSource = " << pathSource << std::endl;
+
+    path pathDest(current_path());
+    pathDest /= "demo (copy).bin";
+
+
+    std::ofstream original{pathSource, std::ios::binary};
+    unsigned int x{0xdeadbeef};
+    original.write((const char*)&x, sizeof(x));
+    original.close();
+
+    std::ofstream dest{pathDest, std::ios::binary};
+    if (!dest) {
+        std::cout << "Failed to open file " << pathDest << std::endl;
+    }
+
+    std::ifstream source{pathSource, std::ios::binary};
+    if (!source) {
+        std::cout << "Failed to open file " << pathSource << std::endl;
+    }
+
+    char ch{};
+    while (true){
+        source.read(&ch, sizeof(ch));
+        if (source.fail()){
+            break;
+        }
+        dest.write((const char*)&ch, sizeof(ch));
+    }
+
+    source.close();
+    dest.close();
+}
+
+// Idea from:
+// https://stackoverflow.com/questions/5420317/reading-and-writing-binary-file
+void copyFile(const std::string& sourceFilePath, std::string destFilePath) {
+    std::ifstream input( sourceFilePath, std::ios::binary );
+    std::ofstream output( destFilePath, std::ios::binary );
+
+    std::copy(
+        std::istreambuf_iterator<char>(input),
+        std::istreambuf_iterator<char>( ),
+        std::ostreambuf_iterator<char>(output));
+}
+
 
 void run() {
     std::cout << "file_io_demo::run()" << std::endl;
     // text_file_demo();
     // error_handling_demo();
     // copyTextFileContentDemo();
-    write_read_char_demo();
+    // write_read_char_demo();
+    // binary_file_demo();
+    copyBinaryFileContentDemo();
 }
 
 }
