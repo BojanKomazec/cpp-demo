@@ -20,6 +20,7 @@
 #include <static_demo.hpp>
 #include <strings_demo.hpp>
 #include <string_streams_demo.hpp>
+#include <templates_demo.hpp>
 #include <type_conversions_demo.hpp>
 #include <utility_demo.hpp>
 #include <std_vector_demo.hpp>
@@ -31,13 +32,14 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    file_io_demo::run();
+    templates_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
     dynamic_memory_management_demo::run();
     enum_demo::run();
     exceptions_demo::run();
+    file_io_demo::run();
     filesystem_demo::run();
     functions_demo::run();
     initialization_demo::run();
