@@ -329,6 +329,615 @@ void demo(){
 }
 }
 
+namespace perfect_forwarding {
+class Integer{
+    int* pInt_;
+public:
+    // Default constructor
+    Integer(){
+        std::cout << "Integer()" << std::endl;
+    }
+
+    // Parameterized constructor
+    Integer(int n):pInt_(new int{n}){
+        std::cout << "Integer(int n)" << std::endl;
+    }
+
+    // Copy constructor
+    Integer(const Integer& other):pInt_(new int{*other.pInt_}){
+        std::cout << "Integer(const Integer&)" << std::endl;
+    }
+
+    // Move constructor
+    Integer(Integer&& other):pInt_(other.pInt_){
+        std::cout << "Integer(Integer&&)" << std::endl;
+        other.pInt_ = nullptr;
+    }
+
+    // Destructor
+    ~Integer(){
+        std::cout << "~Integer()" << std::endl;
+        if (pInt_) {
+            delete pInt_;
+            pInt_ = nullptr;
+        }
+    }
+
+    int GetValue() const {
+        return *pInt_;
+    }
+
+    void SetValue(int n){
+        *pInt_ = n;
+    }
+};
+
+// Employee implementation without move constructor:
+class Employee1{
+    std::string name_;
+    Integer id_;
+public:
+    Employee1(const std::string& name, const Integer& id):
+        name_(name), id_(id){}
+};
+
+// Employee implementation with move constructor:
+class Employee2{
+    std::string name_;
+    Integer id_;
+public:
+    Employee2(const std::string& name, const Integer& id):
+        name_(name), id_(id){
+        std::cout << "Employee2(const std::string& name, const Integer& id)" << std::endl;
+    }
+
+    Employee2(std::string&& name, Integer&& id):
+        name_(name), id_(id){
+        std::cout << "Employee2(std::string&& name, Integer&& id)" << std::endl;
+    }
+};
+
+// Employee implementation with move constructor which calles std::move on Integer parameter:
+class Employee3{
+    std::string name_;
+    Integer id_;
+public:
+    Employee3(const std::string& name, const Integer& id):
+        name_(name), id_(id){
+        std::cout << "Employee3(const std::string& name, const Integer& id)" << std::endl;
+    }
+
+    Employee3(std::string&& name, Integer&& id):
+        name_(name), id_(std::move(id)){
+        std::cout << "Employee3(std::string&& name, Integer&& id)" << std::endl;
+    }
+};
+
+// Constructor is a member template function
+//
+// Reference Collapsing Rule for Function templates that accept rvalue references as arguments:
+// (Parameter is variable in the declaration of function.
+//  Argument is the actual value of this variable that gets passed to function.)
+//
+// - If lvalues are passed as arguments to this function template then the type of T1 and T2 will become lvalue references.
+//   name and id will remain lvalue references.
+//   This means we'd have: (T1& name, T2& id).
+// - If rvalues are passed as arguments into this function then args will remain rvalue references.
+//   name and id will become rvalue references.
+//   We'd have as it is: (T1&& name, T2&& id).
+//
+// This rule does not apply if arguments were lvalue references as arguments e.g. Employee4(T1& name, T2& id)
+//
+class Employee4{
+    std::string name_;
+    Integer id_;
+public:
+    template<typename T1, typename T2>
+    Employee4(T1&& name, T2&& id):
+        name_(name), id_(id){
+        std::cout << "Employee4(T1&& name, T2&& id)" << std::endl;
+    }
+};
+
+// Perfect forwarding
+// If name and id are rvalue references, they will passed further as rvalue references.
+// Reference to named temp object will not be lvalue reference but rvalue reference.
+// If name and id are lvalue references, they will passed further as value references.
+// Information about the reference type is preserved when the argument is forwarded to the next function call.
+class Employee5{
+    std::string name_;
+    Integer id_;
+public:
+    template<typename T1, typename T2>
+    Employee5(T1&& name, T2&& id):
+        name_(std::forward<T1>(name)),
+        id_(std::forward<T2>(id)){
+        std::cout << "Employee5(T1&& name, T2&& id)" << std::endl;
+    }
+};
+
+// Factory method without perfect forwarding:
+template<typename T1, typename T2>
+Employee5* CreateEmployee51(T1&& name, T2&& id){
+    return new Employee5(name, id);
+}
+
+// Factory method with perfect forwarding:
+template<typename T1, typename T2>
+Employee5* CreateEmployee52(T1&& name, T2&& id){
+    return new Employee5(std::forward<T1>(name), std::forward<T2>(id));
+}
+
+void show_problem(){
+    {
+        Employee1 employee{"Bojan", 123};
+
+        // (*) Although we are passing temp Integer object, when assigning value to id_ a copy c-tor is called, another new object is created:
+        // Integer(int n) // temp object is created
+        // Integer(const Integer&) // *
+        // ~Integer() // temp Integer object destroyed
+        // ~Integer() // id_ Integer object destroyed
+        // What if we call move constructor?
+    }
+
+    {
+        Employee2 employee{"Bojan", 123};
+
+        // Employee2's move c-tor is called as temp objects are passed.
+        // https://stackoverflow.com/a/39348385/404421
+        // With move semantics the compiler will inspect whether the argument is an rvalue or not.
+        // If class provides a (move) constructor overload and c-tor param is an rvalue reference, then move c-tor will be preferred.
+        // Compiler knows thate these temp objects will not be used any more, therefore it doesn't make sense to copy them since they will
+        // just be destructed at once anyway. So the compiler decides to call the move-constructor instead.
+
+        // Output:
+        // Integer(int n)
+        // Integer(const Integer&)  // copy c-tor is (still) invoked when id_ is initialized :-(
+        // Employee2(std::string&& name, Integer&& id)
+        // ~Integer()
+        // ~Integer()
+
+        // Integer's copy c-tor is still invoked because rvalue reference variable has a name (name of the argument passed, "id" in "Integer&& id").
+        // This "id" variable is not a temporary, it is a lvalue => copy c-tor is called.
+    }
+
+    {
+        Employee3 employee3{"Bojan", 123};
+
+        // Output:
+        // Integer(int n)
+        // Integer(Integer&&) <-- move c-tor is called, finally!
+        // Employee3(std::string&& name, Integer&& id)
+        // ~Integer()
+        // ~Integer()
+    }
+
+    {
+        std::string name{"Ada"};
+        Employee3 employee3{name, 123};
+
+        // Output:
+        // Integer(int n)
+        // Integer(const Integer&) // copy c-tor called again :-(
+        // Employee3(const std::string& name, const Integer& id)
+        // ~Integer()
+        // ~Integer()
+
+        // Solution: implement Employee3(const std::string& name, Integer&& id)
+    }
+
+    {
+        Integer n{123};
+        Employee3 employee3{"Bob", n};
+
+        // Output:
+        // Integer(int n)
+        // Integer(const Integer&)
+        // Employee3(const std::string& name, const Integer& id)
+        // ~Integer()
+        // ~Integer()
+
+        // Solution: implement Employee3(std::string&& name, const Integer& id)
+    }
+
+    // Problem:
+    // It would be tedious implementing all these variations of constructors.
+    // Solution:
+    // Implement a single constructor but as a template function.
+
+    {
+        Employee4 employee4{"Bojan", 123};
+
+        // Output:
+        // Integer(int n) // T2 deducted as int; id_ is initialized via parameterized c-tor
+        // Employee4(T1&& name, T2&& id)
+        // ~Integer()
+    }
+
+    {
+        Employee4 employee4{"Bojan", Integer{123}};
+
+        // Output:
+        // 2 instances of Integer are created again :-(
+        // Integer(int n) // unnamed temp variable is created (function parameter is always created before it's passed to function)
+        // Integer(const Integer&) // temp variable rvalue reference (Integer&&) now has name assigned via argument name - "id" so copy c-tor is invoked;
+        //                         // id basically becomes lvalue reference: Integer&
+        // Employee4(T1&& name, T2&& id) // T2 is deduced as Integer
+        // ~Integer()
+        // ~Integer()
+
+        // So, how can we pass named rvalue reference (of type Integer&&) to id_{id} as rvalue reference?
+        // We need to use perfect forwarding.
+    }
+}
+
+// In all these examples the goal is to prevent unnecessary creation of objects <==> reusing existing (usually temp) objects via move c-tors.
+void show_solution() {
+    {
+        // Both args are temp objects.
+        // We want employee to contain exactly date contained in these objects, without creating new objects and copying data.
+        // Temp Integer will be passed as rvalue ref (parameter id will be of type Integer&&)
+        Employee5 employee{"Bojan", Integer{123}};
+        // Output:
+        // Integer(int n) // create temporary - function argument
+        // Integer(Integer&&) // Before Employee5 move c-tor is called, call move c-tor for class member id_
+        //                    // employee takes ownership over temp's data - exactly what we want!
+        // Employee5(T1&& name, T2&& id) // body of the move c-tor for class
+        // ~Integer() // destroy temp object
+        // ~Integer() // destroy member id_
+    }
+
+    {
+        // name is temp (passed as rvalue ref), id is non-temp (passed as lvalue ref).
+        // In this case we want to make copy of n's value and use it to initialize a newly created id_ object.
+        // We don't want employee object to take ownership over n's data as n might be used after Employee5 c-tor call.
+        // n will be passed as lvalue ref (parameter id will be of type Integer&)
+        Integer n{123};
+        Employee5 employee{std::string{"Bojan"}, n};
+        // Output:
+        // Integer(int n)
+        // Integer(const Integer&) // copy c-tor is called - exactly what we want!
+        // Employee5(T1&& name, T2&& id)
+        // ~Integer()
+        // ~Integer()
+    }
+}
+
+// As both args are temp objects, we want to see move c-tors called here so their data is reaused by employee object taking ownership over it.
+// But that doesn't happen as both args are named temp objects inside factory function so they are forwarded as lvalue references to next function call
+// which is Employee5 c-tor.
+void show_factory_method_problem() {
+    Employee5* pEmployee5 = CreateEmployee51(std::string{"Bojan"}, Integer{123});
+    // Output:
+    // Integer(int n)
+    // Integer(const Integer&) // copy c-tor is invoked (a new object is created and temp's data is copied to it) - we don't want this!
+    // Employee5(T1&& name, T2&& id)
+    // ~Integer()
+}
+
+void show_factory_method_solution() {
+    Employee5* pEmployee5 = CreateEmployee52(std::string{"Bojan"}, Integer{123});
+    // Output:
+    // Integer(int n)
+    // Integer(Integer&&) // move c-tor is calle - exactly what we want!
+    // Employee5(T1&& name, T2&& id)
+    // ~Integer()
+}
+
+void demo(){
+    // show_problem();
+    // show_solution();
+    // show_factory_method_problem();
+    show_factory_method_solution();
+}
+} // namespace
+
+// Variadic Templates
+// - functions and classes that can accept arbitrary number of arguments
+// - in C printf() can accept any number of arguments; internally, it's implemented through macros =>
+//      - it's not type safe
+//      - cannot accept references as arguments
+// https://eli.thegreenplace.net/2014/variadic-templates-in-c/
+namespace variadic_templates{
+
+// Use C++11 initializer list to implement C-style printf()
+template<typename T>
+void Print(std::initializer_list<T> il) {
+    std::cout << "Print()" << std::endl;
+    // for (auto el : il) {
+    for (const auto& el : il) {
+        std::cout << el << std::endl;
+    }
+}
+
+// By using variadic templates we can create a function which can accept any number of arguments of any type.
+// Three dots (...) are known as ellipsis and they specify that this template method is a variadic template one.
+// (they are also used in catch block where we want to specify that it can catch any exception).
+// We need also to specify a name that represents the variable number of type names: Params.
+// Params does not represent a type name. It is an alias to the list of type names.
+// It is a name of the set of type names.
+// This is known as "template parameter pack"
+template<typename...Params>
+void Print2(Params... args){
+}
+
+// How can we access individual arguments?
+// Individual argumets can't be accessed directly.
+// To access individual arguments we need to use recursion: this funciton has to call itself and pass 'args' to it.
+// Technically, this is not recursion, because a different function is called. The compiler ends up generating a different function
+// for every used length of the parameter pack. It's useful to reason about it recursively, though.
+// In each recursive call number of arguments in 'args' will be reduced by 1.
+// Just like in other recursion, we need to define the stop condition (base case, which stops recursion).
+// If we don't do it we'll get infinite recurson (Segmentation fault )...
+template<typename...Params>
+void Print3(Params... args){
+    // Print3(args);
+    //  error: parameter packs not expanded with ‘...’:
+
+    // We need to expand parameter pack with ellipsis when passing it to another function call:
+    Print3(args...);
+}
+
+// That stop condition is implemented via another Print function which does not accept variadic templates and which is passed to
+// variadic template function.
+// That function is called a Base Case function and we'll pass it via t argument:
+// In each recursive call number of arguments in 'args' will be reduced by 1.
+// In the final call 0 arguments will be passed.
+template<typename T, typename...Params>
+void Print4(T arg0, Params... args){
+    Print4(args...);
+}
+
+//
+// Final version: variadic template function with base case function
+//
+
+// Base Case function must be declared BEFORE its variadic template function!
+void Print5() {
+    std::cout << std::endl;
+}
+
+// Good but not perfect. This will print one extra comma after the last argument.
+// To avoid printing it, we need to know if args is empty.
+// We need to know the number of arguments in the function parameter pack.
+template<typename T, typename...Params>
+void Print5(T arg0, Params... args){
+    std::cout << arg0 << ", ";
+    Print5(args...);
+}
+
+// To get the number of arguments in the template parameter pack we need to use variadic sizeof operator.
+void Print6() {
+    std::cout << std::endl;
+}
+
+template<typename T, typename...Params>
+void Print6(T arg0, Params... args){
+    std::cout << "sizeof...(Params) = " << sizeof...(Params) << std::endl;
+    std::cout << "sizeof...(args) = " << sizeof...(args) << std::endl;
+
+    std::cout << arg0 << ", ";
+
+    Print6(args...);
+}
+
+
+void Print7() {
+    std::cout << std::endl;
+}
+
+template<typename T, typename...Params>
+void Print7(T arg0, Params... args){
+    std::cout << arg0;
+
+    if (sizeof...(args) != 0) {
+        std::cout << ", ";
+    }
+
+    Print7(args...);
+}
+
+std::ostream& operator<< (std::ostream& os, const perfect_forwarding::Integer& n){
+    os << n.GetValue();
+    return os;
+}
+
+void Print8() {
+    std::cout << std::endl;
+}
+
+template<typename T, typename...Params>
+void Print8(const T& arg0, const Params&... args){
+    std::cout << arg0;
+
+    if (sizeof...(args) != 0) {
+        std::cout << ", ";
+    }
+
+    Print8(args...);
+}
+
+void Print9() {
+    std::cout << std::endl;
+}
+
+// Reference collapsing rule applies here:
+// If lvalue is passed to Print9's arg0, arg0 becomes lvalue reference.
+// If rvalue is passed to Print9's arg0, arg0 becomes rvalue reference.
+// Same applies for args.
+template<typename T, typename...Params>
+void Print9(T&& arg0, Params&&... args){
+    std::cout << arg0;
+
+    if (sizeof...(args) != 0) {
+        std::cout << ", ";
+    }
+
+    Print9(args...);
+}
+
+void Print10() {
+    std::cout << std::endl;
+}
+
+template<typename T, typename...Params>
+void Print10(T&& arg0, Params&&... args){
+    std::cout << arg0;
+
+    if (sizeof...(args) != 0) {
+        std::cout << ", ";
+    }
+
+    Print10(std::forward<Params>(args)...);
+}
+
+void show_problem(){
+    Print({1, 2, 3});
+
+    // Problem with initializer list is that all elements have to be of the same type oterwise template type deduction would fail:
+    // error: no matching function for call to ‘Print(<brace-enclosed initializer list>)’
+    // note:   template argument deduction/substitution failed:
+    // note:   deduced conflicting types for parameter ‘_Tp’ (‘int’ and ‘double’)
+    // Print({1, 2, 3.14});
+
+    // Solution: using variadic templates.
+
+    // arguments passed here are expanded to 'args'.
+    Print2(1, "test", 3.14);
+
+    // Print3(1, "test", 3.14);
+    // Segmentation fault (core dumped)
+
+    // Print4(1, "test", 3.14);
+    // Output:
+    // error: no matching function for call to ‘Print4()’
+    // note: candidate: ‘template<class T, class ... Params> void templates_demo::variadic_templates::Print4(T, Params ...)’
+    // note:   template argument deduction/substitution failed
+    // note:   candidate expects at least 1 argument, 0 provided
+    //
+    // Explanation of these recursive calls:
+    //
+    // Print4(1, "test", 3.14); => arg0 = 1, args = {"test", 3.14}
+    // Print4("test", 3.14); => arg0 = "test", args = {3.14}
+    // Print4(3.14) =>  arg0 = 3.14, args = {} <-- args is now empty list!
+    // Print4() => error no matching function for call to ‘Print4()’; as we haven't provided such function.
+}
+
+void show_solution(){
+    Print5(1, "test", 3.14);
+    // Output:
+    // 1, test, 3.14,
+    // Good but not perfect. There is one extra comma after the last argument.
+    // To avoid printing it, we need to know if args is empty.
+
+    Print6(1, "test", 3.14);
+
+
+    Print7(1, "test", 3.14);
+    // Output:
+    // 1, test, 3.14 <-- this is what we wanted! :-)
+
+    // But, there is still way to improve this.
+    // So far we've been passing args by value to Print function. This means that their copies are made.
+    // Improvement: pass them by const reference.
+
+    Print8(1, "test", 3.14);
+    // Output:
+    // 1, test, 3.14
+
+    std::cout << "\nPrint8()" << std::endl;
+    perfect_forwarding::Integer n{56};
+    Print8(1, "test", 3.14, n, perfect_forwarding::Integer{67});
+    // Output:
+    // <-- Not ideal: copy c-tor called although we passed temp object. Let's pass by rvalue ref!
+    // Integer(int n) // Creating n
+    // Integer(int n) // Creating temp object.
+    // 1, test, 3.14, 56, 67
+    // ~Integer()
+
+    std::cout << "\nPrint9()" << std::endl;
+    Print9(1, "test", 3.14, n, perfect_forwarding::Integer{67});
+    // Output:
+    // <-- In a recursive call, as args is a name of a temp variable,
+    // rvalue ref collapses to lvalue ref so copy c-tor is still called. Let's use perfect forwarding to the rescue!
+    // Integer(int n)
+    // 1, test, 3.14, 56, 67
+    // ~Integer()
+
+    std::cout << "\nPrint10()" << std::endl;
+    Print10(1, "test", 3.14, n, perfect_forwarding::Integer{67});
+    // Output:
+    // Integer(int n)
+    // 1, test, 3.14, 56, 67
+    // ~Integer()
+    // ~Integer() // destroying n
+}
+
+void demo(){
+    // show_problem();
+    show_solution();
+}
+}
+
+// Complete Modern C++ (C++11/14/17) course by Umar Lone
+// https://www.udemy.com/course/beg-modern-cpp/
+
+// Create a factory method that creates an instance of some type T, initializes it with arguments and returns the instance.
+// It should work with any type that accepts arbitrary number of arguments.
+// Here are some usage examples of the factory.
+//
+// Employee * emp = CreateObject<Employee>(
+// "Bob",    //Name
+// 101,      //Id
+// 1000) ;   //Salary
+//
+// Contact *p = CreateObject<Contact>(
+// "Joey",                //Name
+// 987654321,             //Phone number
+// "Boulevard Road, Sgr", //Address
+// "joey@poash.com") ;    //Email
+
+namespace assignment1 {
+
+template<typename TObject, typename ...Params>
+TObject* CreateObject(Params...args){
+    return new TObject(args...);
+}
+
+class Employee {
+public:
+    Employee(std::string name, int id, int salary) {
+        std::cout << "Employee: " << name << ", " << id << ", " << salary << std::endl;
+    }
+};
+
+class Contact {
+public:
+    Contact(std::string name, long int phone, std::string address, std::string email) {
+        std::cout << "Contact: " << name << ", " << phone << ", " << address << ", " << email << std::endl;
+    }
+};
+
+void demo() {
+    Employee * emp = CreateObject<Employee>(
+        "Bob",    //Name
+        101,      //Id
+        1000) ;   //Salary
+
+    // Employee: Bob, 101, 1000
+
+    Contact *p = CreateObject<Contact>(
+        "Joey",                //Name
+        987654321,             //Phone number
+        "Boulevard Road, Sgr", //Address
+        "joey@poash.com") ;    //Email
+
+    // Contact: Joey, 987654321, Boulevard Road, Sgr, joey@poash.com
+}
+
+
+}
+
 namespace misc {
 
 template<typename Function>
@@ -363,7 +972,10 @@ void run() {
     // template_arg_deduction::demo();
     // explicit_specialization::demo();
     // misc::defer_test();
-    non_type_template_arguments::demo();
+    // non_type_template_arguments::demo();
+    // perfect_forwarding::demo();
+    // variadic_templates::demo();
+    assignment1::demo();
 }
 
 }

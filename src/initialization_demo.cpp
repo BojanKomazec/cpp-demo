@@ -46,6 +46,12 @@ void list_initialization_demo() {
     int n4 = {0};
     assert(n4 == 0);
 
+    //
+    // The next example shows why it's safer to use uniform initialization rather than common assignment.
+    // Compiler will just issue a warning when types don't match (but are implicitly convertible) in case of common assigment
+    // but will issue an error in case of uniform initialization:
+    //
+
     // warning: implicit conversion from 'int' to 'char' changes value from 129 to -127 [-Wconstant-conversion]
     char ch1 = 129;
 
@@ -95,7 +101,11 @@ void list_initialization_demo() {
 
     // This is possible from C++11
     // That's why using {} intializer list is called Uniform initialization - scalars, arrays and vectors can be initialized with the same construct.
-    // Behind the scenes, whenver compiler sees {...} it creates an instance of std::initialzer_list<T>
+    // Behind the scenes, whenever compiler sees {a, b, c...} it creates an instance of std::initialzer_list<T>.
+    // std::initializer_list<T> can be created from a list of any number of elements.
+    // It is used if you want to initialize some container type with a pre-defined set of elements.
+    // It allows very convenient syntax - like in plain C arrays.
+    // https://en.cppreference.com/w/cpp/utility/initializer_list
     std::vector<int> v1 = {1, 2, 3, 4, 5};
 
     std::cout << "Vector v1: ";
