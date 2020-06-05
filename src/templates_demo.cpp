@@ -637,7 +637,7 @@ void demo(){
 // - in C printf() can accept any number of arguments; internally, it's implemented through macros =>
 //      - it's not type safe
 //      - cannot accept references as arguments
-// https://eli.thegreenplace.net/2014/variadic-templates-in-c/
+// https://eli.thegreenplace.net/2014/variadic-templates-in-c/git
 namespace variadic_templates{
 
 // Use C++11 initializer list to implement C-style printf()
@@ -935,7 +935,211 @@ void demo() {
     // Contact: Joey, 987654321, Boulevard Road, Sgr, joey@poash.com
 }
 
+}
 
+// Class Templates
+//
+// - used so classes can handle different types
+// - typically used by containers
+// - C++ standard library contains several containers that are implemented through class templates (vector, list, set, map...)
+namespace class_templates {
+
+namespace problem {
+
+// We assume this container class can hold only integers.
+class Stack {
+    int buff_[512];
+    int top_{-1};
+public:
+    void Push(int n) {
+        buff_[++top_] = n;
+    }
+
+    void Pop() {
+        --top_;
+    }
+
+    int Top() {
+        return buff_[top_];
+    }
+
+    bool IsEmpty() {
+        return top_ == -1;
+    }
+};
+
+void show() {
+    Stack stack;
+    stack.Push(1);
+    stack.Push(2);
+    stack.Push(3);
+    stack.Push(4);
+
+    while (!stack.IsEmpty()) {
+        std::cout << stack.Top() << std::endl;
+        stack.Pop();
+    }
+
+    // Problem:
+    // What if we want to store elements of type float, double, string?
+}
+
+} // namespace problem
+
+namespace solution {
+
+// compiler will create only classes for those types that template is instantiated for.
+// Only those member functions that are invoked will be instantiated.
+template <typename T>
+class Stack {
+    T buff_[512];
+    int top_{-1};
+public:
+    // T can be a user-defined type so we should pass it by const reference
+    void Push(const T& elem) {
+        buff_[++top_] = elem;
+    }
+
+    void Pop() {
+        --top_;
+    }
+
+    const T& Top() {
+        return buff_[top_];
+    }
+
+    bool IsEmpty() {
+        return top_ == -1;
+    }
+};
+
+// class templates can accept non-type template arguments
+template <typename T, int size>
+class Stack2 {
+    T buff_[size];
+    int top_{-1};
+public:
+    // T can be a user-defined type so we should pass it by const reference
+    void Push(const T& elem) {
+        buff_[++top_] = elem;
+    }
+
+    // We can define memeber function outside the class definition
+    void Pop();
+
+    const T& Top() {
+        return buff_[top_];
+    }
+
+    bool IsEmpty() {
+        return top_ == -1;
+    }
+
+    // A factory method - creates an instance of the class
+    // Return type does not need complete template type parameters as this definition is within the template class.
+    // This is so called "shorthand notation" in which we don't need to specify template type parameters.
+    // It can be used only if that type is inside class definition. It cannot be used outside the class.
+    static Stack2 Create() {
+        return Stack2<T, size>(); // temp object returned by value
+    }
+
+    // We can define factory method outside the class definition.
+    static Stack2 Create2();
+
+    Stack2() = default;
+
+    // Copy constructor; its argument uses the shorthand notation.
+    // Long-hand notation can also be used but is not required.
+    Stack2(const Stack2& other) {
+        for (int i = 0; i <= other.top_; ++i) {
+            buff_[i] = other.buff_[i];
+        }
+        top_ = other.top_;
+    }
+};
+
+// If we implement member functions outside the class declaration, we need to follow the syntax of the templates
+// In templates, template parameters are part of the type, therefore we need to write Stack2<T, size>:
+template<typename T, int size>
+void Stack2<T, size>::Pop() {
+    --top_;
+}
+
+// We can have Factory method definition outside the class
+template<typename T, int size>
+Stack2<T, size> Stack2<T, size>::Create2() {
+    return Stack2<T, size>();
+}
+
+
+void show() {
+
+    {
+        Stack<int> stack;
+        stack.Push(1);
+        stack.Push(2);
+        stack.Push(3);
+        stack.Push(4);
+
+        while (!stack.IsEmpty()) {
+            std::cout << stack.Top() << std::endl;
+            stack.Pop();
+        }
+    }
+
+    {
+        Stack<float> stack;
+        stack.Push(1.);
+        stack.Push(2);
+        stack.Push(3);
+        stack.Push(4);
+
+        while (!stack.IsEmpty()) {
+            std::cout << stack.Top() << std::endl;
+            stack.Pop();
+        }
+    }
+
+    {
+        Stack2<int, 10> stack;
+        stack.Push(1);
+        stack.Push(2);
+        stack.Push(3);
+        stack.Push(4);
+
+        while (!stack.IsEmpty()) {
+            std::cout << stack.Top() << std::endl;
+            stack.Pop();
+        }
+    }
+
+    {
+        // error: conversion from ‘Stack2<[...],10>’ to non-scalar type ‘Stack2<[...],9>’ requested
+        // Stack2<int, 9> stack = Stack2<int, 10>::Create();
+    }
+
+    {
+        Stack2<int, 10> stack;
+        stack.Push(12);
+        stack.Push(23);
+        stack.Push(34);
+        stack.Push(45);
+
+        while (!stack.IsEmpty()) {
+            std::cout << stack.Top() << std::endl;
+            stack.Pop();
+        }
+
+        Stack2<int, 10> stack2(stack);
+        while (!stack2.IsEmpty()) {
+            std::cout << stack2.Top() << std::endl;
+            stack2.Pop();
+        }
+    }
+
+}
+
+}
 }
 
 namespace misc {
@@ -975,7 +1179,9 @@ void run() {
     // non_type_template_arguments::demo();
     // perfect_forwarding::demo();
     // variadic_templates::demo();
-    assignment1::demo();
+    // assignment1::demo();
+    // class_templates::problem::show();
+    class_templates::solution::show();
 }
 
 }

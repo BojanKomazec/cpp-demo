@@ -32,7 +32,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    templates_demo::run();
+    preprocessor_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
@@ -47,7 +47,6 @@ int main(int argc, char const *argv[]) {
     lambda_demo::run();
     operators_demo::run();
     pointer_demo::run();
-    preprocessor_demo::run();
     recursion_demo::run();
     reference_demo::run();
     smart_pointers_demo::run();
@@ -56,6 +55,7 @@ int main(int argc, char const *argv[]) {
     std_vector_demo::run();
     strings_demo::run();
     string_streams_demo::run();
+    templates_demo::run();
     type_conversions_demo::run();
     utility_demo::run();
   }
