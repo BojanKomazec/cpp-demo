@@ -18,6 +18,7 @@
 #include <smart_pointers_demo.hpp>
 #include <statements_demo.hpp>
 #include <static_demo.hpp>
+#include <std_string_view_demo.hpp>
 #include <strings_demo.hpp>
 #include <string_streams_demo.hpp>
 #include <templates_demo.hpp>
@@ -32,7 +33,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    declarations_demo::run();
+    std_string_view_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
