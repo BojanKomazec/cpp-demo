@@ -196,7 +196,7 @@ T max(T arg1, T arg2) {
 }
 
 // Explicit Specialization of a template function.
-// We can omit type afger function name but it's more verbose and easier to understand if we specify type explicitly there.
+// We can omit type after function name but it's more verbose and easier to understand if we specify type explicitly there.
 // const char* max(const char* arg1, const char* arg2) {
 template<>
 const char* max<const char*>(const char* arg1, const char* arg2) {

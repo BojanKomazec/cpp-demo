@@ -78,6 +78,108 @@ void const_with_ptrs_and_refs_demo() {
     int* const& p_ref2 = ptr2;
 }
 
+// error: invalid conversion from ‘const char*’ to ‘char*’ [-fpermissive]
+// char* get_string_pt() {
+//     return "test";
+// }
+
+char* get_string_pt() {
+    return new char[5]{'t', 'e', 's', 't', 0 };
+}
+
+const char* get_string_const_pt() {
+    return new char[5]{'t', 'e', 's', 't', 0 };
+}
+
+void const_array_demo() {
+    // p1 is pointer to a "char"
+    // warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+    char* p1 = "test1A";
+    std::cout << p1 << std::endl;
+
+    // Change character in a string
+    // Segmentation fault (core dumped)
+    // p1[0] = 'T';
+
+    // Segmentation fault (core dumped)
+    // *p1 = 'T';
+
+    // Reassign a pointer
+    // warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+    p1 = "test1B";
+    std::cout << p1 << std::endl;
+
+    // p2 is pointer to a "const char"
+    const char* p2 = "test2A";
+    std::cout << p2 << std::endl;
+
+    // Change character in a string
+    // error: assignment of read-only location ‘*(p2 + 2)’
+    // p2[2] = 'x';
+
+    // Reassign a pointer
+    p2 = "test2B";
+    std::cout << p2 << std::endl;
+
+    // p3 is an array of char
+    char p3[] = "test3A";
+    std::cout << p3 << std::endl;
+
+    p3[0] = 'T';
+    std::cout << p3 << std::endl;
+
+    *p3 = 'R';
+    std::cout << p3 << std::endl;
+
+    // error: invalid array assignment
+    // p3 = "test3B";
+    // char p31[] = "test3B";
+    // error: invalid array assignment
+    // p3 = p31;
+    // std::cout << p3 << std::endl;
+
+    // error: incompatible types in assignment of ‘long int’ to ‘char [7]’
+    // p3 = NULL;
+
+    const char p4[] = "test4";
+    std::cout << p4 << std::endl;
+
+    // error: assignment of read-only location ‘p4[0]’
+    // p4[0] = 'T';
+
+    // error: assignment of read-only location ‘*(const char*)(& p4)’
+    // *p4 = 'T';
+
+
+    // error: array must be initialized with a brace-enclosed initializer
+    // const char* p5[] = "test5";
+    const char* p5[] = { "test5" };
+    std::cout << p5 << std::endl;
+
+    // error: invalid conversion from ‘char’ to ‘const char*’ [-fpermissive]
+    // p5[0] = 'T';
+    // error: invalid conversion from ‘char’ to ‘const char*’ [-fpermissive]
+    // *p5 = 'T';
+
+    char* p6 = get_string_pt();
+    std::cout << p6 << std::endl;
+    p6[0] = 'T';
+    std::cout << p6 << std::endl;
+
+    const char* p7 = get_string_pt();
+    std::cout << p7 << std::endl;
+    //  error: assignment of read-only location ‘* p7’
+    // p7[0] = 'T';
+
+    // error: invalid conversion from ‘const char*’ to ‘char*’ [-fpermissive]
+    // char* p8 = get_string_const_pt();
+
+    const char* p9 = get_string_const_pt();
+    // error: assignment of read-only location ‘* p9’
+    // p9[0] = 'T';
+}
+
+
 // 0! is 1.
 constexpr int factorial(const unsigned int n) {
     return n == 0 ? 1 : n * factorial(n - 1);
@@ -251,7 +353,7 @@ void auto_demo() {
     // will be the one which can accomodate all values (float in this example)
     auto sumOfIntAndFloat = 3 + 3.14f;
     std::cout << "typeid(sumOfIntAndFloat).name() = " << typeid(sumOfIntAndFloat).name() << std::endl; // f
-     std::cout << "sumOfIntAndFloat = " << sumOfIntAndFloat << std::endl; // 6.14
+    std::cout << "sumOfIntAndFloat = " << sumOfIntAndFloat << std::endl; // 6.14
 
     // the true value in using 'auto' comes when using it with lambdas and templates
     auto sum = [](int a, int b) {
@@ -321,6 +423,85 @@ void auto_demo() {
     // n7 type is std::initializer_list<int>
     auto n7 = {1, 2};
 }
+
+auto auto_fn_returns_int() {
+    return 1;
+}
+
+decltype(auto) decltype_auto_fn_returns_int() {
+    return 1;
+}
+
+auto auto_fn_returns_int_lvalue_ref(int& n) {
+    return n;
+}
+
+const auto& auto_fn_returns_int_const_lvalue_ref(const int& n) {
+    return n;
+}
+
+decltype(auto) decltype_auto_fn_returns_int_const_lvalue_ref(const int& n) {
+    return n;
+}
+
+decltype(auto) decltype_auto_fn_returns_int_const_lvalue_ref_2(const int& n) {
+    const int& cref = n;
+    return cref;
+}
+
+decltype(auto) decltype_auto_fn_returns_int_lvalue_ref(int& n) {
+    return n;
+}
+
+auto auto_fn_returns_int_rvalue_ref(int n) {
+    // error: cannot bind rvalue reference of type ‘int&&’ to lvalue of type ‘int’
+    // int&& r = n;
+
+    int&& r = 1;
+    return r;
+}
+
+template <typename T> const char *foo()
+{
+#ifdef _MSC_VER
+    return __FUNCSIG__;
+#else
+    return __PRETTY_FUNCTION__;
+#endif
+}
+
+void decltype_auto_functions_demo() {
+    auto n11 = auto_fn_returns_int();
+    std::cout << "n11: " << typeid(n11).name() << ", " << foo<decltype(n11)>() << std::endl; // i, int
+
+    decltype(auto) n12 = decltype_auto_fn_returns_int();
+    std::cout << "n12: " << typeid(n12).name() << ", " << foo<decltype(n12)>() << std::endl; // i, int
+
+    int nx = 1;
+
+    auto n21 = auto_fn_returns_int_lvalue_ref(nx);
+    std::cout << "n21: " << typeid(n21).name() << ", " << foo<decltype(n21)>() << std::endl; // i, int
+
+    auto n211 = decltype_auto_fn_returns_int_lvalue_ref(nx);
+    std::cout << "n211: " << typeid(n211).name() << ", " << foo<decltype(n211)>() << std::endl; // i, int
+
+    decltype(auto) n22 = decltype_auto_fn_returns_int_lvalue_ref(nx);
+    std::cout << "n22: " << typeid(n22).name() << ", " << foo<decltype(n22)>() << std::endl; // i, int&
+
+    auto n31 = auto_fn_returns_int_const_lvalue_ref(nx);
+    std::cout << "n31: " << typeid(n31).name() << ", " << foo<decltype(n31)>() << std::endl; // i, int
+
+    const auto& n32 = auto_fn_returns_int_const_lvalue_ref(nx);
+    std::cout << "n32: " << typeid(n32).name() << ", " << foo<decltype(n32)>() << std::endl; // i, const int&
+
+    auto n41 = decltype_auto_fn_returns_int_const_lvalue_ref(nx);
+    std::cout << "n41: " << typeid(n41).name() << ", " << foo<decltype(n41)>() << std::endl; // i, int
+
+    auto n42 = decltype_auto_fn_returns_int_const_lvalue_ref_2(nx);
+    std::cout << "n42: " << typeid(n42).name() << ", " << foo<decltype(n42)>() << std::endl; // i, int
+}
+
+
 
 void namespace_demo(){
     // content of the anonymous namespace can be accessed in the same cpp file without need to use any scoping qualifiers
@@ -693,8 +874,10 @@ void run(){
     // auto_demo();
     // const_demo();
     // const_with_ptrs_and_refs_demo();
+    const_array_demo();
     // constexpr_demo();
-    constexpr_demo_2();
+    // constexpr_demo_2();
+    // decltype_auto_functions_demo();
     // factorial_demo();
     // fibonacci_demo();
     // namespace_demo();
