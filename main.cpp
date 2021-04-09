@@ -33,7 +33,7 @@ int main(int argc, char const *argv[]) {
   }
 
   if (true) {
-    std_string_view_demo::run();
+    lambda_demo::run();
   } else {
     class_demo::run();
     declarations_demo::run();
@@ -54,6 +54,7 @@ int main(int argc, char const *argv[]) {
     smart_pointers_demo::run();
     static_demo::run();
     statements_demo::run();
+    std_string_view_demo::run();
     std_vector_demo::run();
     strings_demo::run();
     string_streams_demo::run();

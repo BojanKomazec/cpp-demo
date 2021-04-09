@@ -1,6 +1,7 @@
 #include <lambda_demo.hpp>
 #include <iostream>
 #include <cassert>
+#include <functional>
 
 namespace lambda_demo {
 
@@ -69,9 +70,42 @@ void lambda_demo() {
     lambdaCapturesByRef(); // prints: s.GetValue() = 56
 }
 
+void std_function_and_lambda_demo() {
+    auto s1 = "This is a ";
+    std::function<void(std::string_view const&)> fn{[s1](std::string_view const& sw){
+        std::cout << "(lambda) Concatenation result = " << std::string(s1) + std::string(sw) << std::endl;
+    }};
+
+    fn("test");
+    // Output:
+    // (lambda) Concatenation result = This is a test
+}
+
+
+void event_int_operands_available(int op1, int op2, std::function<void(int, int)> callback){
+    callback(op1, op2);
+}
+
+// lambdas are useful when defining callback/handler functions if they are used only at one place
+// so we can avoid declaring (and naming) a whole new function so we can only use it in a single place.
+void callback_lambda_demo() {
+    event_int_operands_available(1, 2, [](int op1, int op2){
+        std::cout << "(Lambda) The sum is " << op1 + op2 << std::endl;
+    });
+
+    // In the other call we want to use a different handler/callback.
+    // A bit of English:
+    // The terms of subtraction are called minuend and subtrahend, the outcome is called the difference.
+    event_int_operands_available(1, 2, [](int op1, int op2){
+        std::cout << "(Lambda) The difference is " << op1 - op2 << std::endl;
+    });
+}
+
 void run() {
     std::cout << "lambda_demo::run()" << std::endl;
-    lambda_demo();
+    // lambda_demo();
+    std_function_and_lambda_demo();
+    // callback_lambda_demo();
 }
 
 }
