@@ -268,6 +268,15 @@ constexpr int min(int n1, int n2) {
     return n2;
 }
 
+constexpr decltype(auto) is_build_debug() noexcept {
+#if defined(DEBUG)
+  return true;
+#else
+  return false;
+#endif
+}
+
+
 void constexpr_demo_2(){
     int n1 = 1;
     int arr1[n1];
@@ -301,6 +310,9 @@ void constexpr_demo_2(){
 
     int n5 = min(3, 5);
     assert(n5 == 3);
+
+    auto isBuildDebug = is_build_debug();
+    assert(isBuildDebug ==  false);
 }
 
 void factorial_demo() {
